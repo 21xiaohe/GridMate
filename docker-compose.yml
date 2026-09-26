@@ -1,0 +1,48 @@
+services:
+  mysql:
+    image: mysql:8   # 8.4 系;dev 数据卷自 tools 起就是 8.4 的数据文件,钉 8.0 会拒绝降级启动
+    container_name: pawserve-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: pawserve
+    ports:
+      - "3307:3306"   # 本机 3306 被已有 MySQL 服务占用，宿主机侧改用 3307
+    volumes:
+      - pawserve-mysql-data:/var/lib/mysql
+      - ./sql:/docker-entrypoint-initdb.d:ro   # 首启按文件名序执行 tools-ddl.sql → tools-seed.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  # retrieval: Milvus Standalone(唯 Standalone 支持原生 BM25 全文检索)
+  # 轻量部署:内嵌 etcd + 本地存储,单容器即可跑(不依赖外部 etcd/minio)
+  milvus-standalone:
+    image: milvusdb/milvus:v2.6.22
+    container_name: pawserve-milvus
+    command: ["milvus", "run", "standalone"]
+    environment:
+      # 轻量部署（2026-10-27）：minio 镜像被官方锁死拉不到，改用官方 standalone_embed 模式——
+      # 内嵌 etcd + 本地存储，功能等价，单容器即可跑（BM25/混合检索不受影响）
+      ETCD_USE_EMBED: "true"
+      ETCD_DATA_DIR: /var/lib/milvus/embedded_etcd
+      ETCD_CONFIG_PATH: /milvus/configs/embedEtcd.yaml
+      COMMON_STORAGETYPE: local
+      DEPLOY_MODE: STANDALONE
+    volumes:
+      - pawserve-milvus-data:/var/lib/milvus
+      - ./embedEtcd.yaml:/milvus/configs/embedEtcd.yaml:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 30s
+      start_period: 90s
+      timeout: 20s
+      retries: 5
+    ports:
+      - "19530:19530"
+      - "9091:9091"
+
+volumes:
+  pawserve-mysql-data:
+  pawserve-milvus-data:

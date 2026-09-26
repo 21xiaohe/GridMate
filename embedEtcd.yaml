@@ -1,0 +1,6 @@
+# Milvus 内嵌 etcd 配置（官方 standalone_embed 模式，2026-10-27 由原 compose 的 etcd 服务参数迁移而来）
+listen-client-urls: http://0.0.0.0:2379
+advertise-client-urls: http://0.0.0.0:2379
+quota-backend-bytes: 4294967296
+auto-compaction-mode: revision
+auto-compaction-retention: '1000'
