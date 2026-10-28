@@ -1,0 +1,133 @@
+{
+ "meta": {
+  "n_samples": 300,
+  "kb_chunks": 52,
+  "recall_k": 5,
+  "retrieve_k": 10,
+  "concurrency": 5,
+  "chat_model": "deepseek-flash",
+  "generated_at": "2026-11-08 10:56"
+ },
+ "retrieval": {
+  "vector": {
+   "A_policy": {
+    "recall": 1.0,
+    "mrr": 0.919
+   },
+   "B_model": {
+    "recall": 1.0,
+    "mrr": 0.903
+   },
+   "C_colloquial": {
+    "recall": 1.0,
+    "mrr": 0.883
+   },
+   "E_multi": {
+    "recall": 0.9,
+    "mrr": 0.629
+   },
+   "overall": {
+    "recall": 0.975,
+    "mrr": 0.833
+   }
+  },
+  "bm25": {
+   "A_policy": {
+    "recall": 1.0,
+    "mrr": 0.921
+   },
+   "B_model": {
+    "recall": 1.0,
+    "mrr": 0.992
+   },
+   "C_colloquial": {
+    "recall": 0.833,
+    "mrr": 0.64
+   },
+   "E_multi": {
+    "recall": 0.828,
+    "mrr": 0.588
+   },
+   "overall": {
+    "recall": 0.915,
+    "mrr": 0.785
+   }
+  },
+  "hybrid": {
+   "A_policy": {
+    "recall": 1.0,
+    "mrr": 0.922
+   },
+   "B_model": {
+    "recall": 1.0,
+    "mrr": 0.972
+   },
+   "C_colloquial": {
+    "recall": 0.933,
+    "mrr": 0.781
+   },
+   "E_multi": {
+    "recall": 0.858,
+    "mrr": 0.626
+   },
+   "overall": {
+    "recall": 0.948,
+    "mrr": 0.825
+   }
+  },
+  "hybrid_rerank": {
+   "A_policy": {
+    "recall": 1.0,
+    "mrr": 0.956
+   },
+   "B_model": {
+    "recall": 1.0,
+    "mrr": 1.0
+   },
+   "C_colloquial": {
+    "recall": 1.0,
+    "mrr": 0.958
+   },
+   "E_multi": {
+    "recall": 0.936,
+    "mrr": 0.655
+   },
+   "overall": {
+    "recall": 0.984,
+    "mrr": 0.892
+   }
+  }
+ },
+ "evidence_coverage": {
+  "vector": {
+   "A_policy": 1.0,
+   "B_model": 1.0,
+   "C_colloquial": 1.0,
+   "E_multi": 0.989,
+   "overall": 0.997
+  },
+  "bm25": {
+   "A_policy": 1.0,
+   "B_model": 1.0,
+   "C_colloquial": 0.9,
+   "E_multi": 0.947,
+   "overall": 0.962
+  },
+  "hybrid": {
+   "A_policy": 1.0,
+   "B_model": 1.0,
+   "C_colloquial": 1.0,
+   "E_multi": 0.992,
+   "overall": 0.998
+  },
+  "hybrid_rerank": {
+   "A_policy": 1.0,
+   "B_model": 1.0,
+   "C_colloquial": 1.0,
+   "E_multi": 0.975,
+   "overall": 0.994
+  }
+ },
+ "generation": null,
+ "read_notes": {}
+}
