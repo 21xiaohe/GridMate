@@ -1,0 +1,1 @@
+{"meta": {"days": 7, "source": "Langfuse", "generated_at": "2026-07-29 10:00"}, "rows": [{"intent": "业务咨询", "count": 3, "tokens": 8821, "avg_tokens": 2940, "share": 0.4712}, {"intent": "报修", "count": 1, "tokens": 7942, "avg_tokens": 7942, "share": 0.4243}], "total_tokens": 16763, "total_requests": 4}

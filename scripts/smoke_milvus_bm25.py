@@ -28,8 +28,8 @@ def main() -> None:
     client.create_collection(COLL, schema=schema, index_params=index_params)
 
     client.insert(COLL, [
-        {"id": 1, "dense": [0.1, 0.2, 0.3, 0.4], "text": "满99元包邮,不满收取10元运费"},
-        {"id": 2, "dense": [0.2, 0.1, 0.4, 0.3], "text": "智能猫砂盆 Pro 型号支持自动清理和除臭"},
+        {"id": 1, "dense": [0.1, 0.2, 0.3, 0.4], "text": "满99元缴费,不满收取10元违约金"},
+        {"id": 2, "dense": [0.2, 0.1, 0.4, 0.3], "text": "智能电能表 Pro 型号支持自动清理和除臭"},
     ])
     client.flush(COLL)          # 刷盘,新写入数据才可被 BM25 检索到
     client.load_collection(COLL)
@@ -37,7 +37,7 @@ def main() -> None:
     time.sleep(2)               # 等 sparse 索引对新段生效
 
     # 纯 BM25:问型号应命中第 2 条
-    res = client.search(COLL, data=["猫砂盆 Pro 型号"], anns_field="sparse",
+    res = client.search(COLL, data=["电表箱 Pro 型号"], anns_field="sparse",
                         limit=2, output_fields=["text"], search_params={"metric_type": "BM25"})
     print("BM25:", [(h["id"], round(float(h["distance"]), 3)) for h in res[0]])
     assert res[0][0]["id"] == 2, "型号词 BM25 应命中第 2 条"
@@ -45,7 +45,7 @@ def main() -> None:
     # hybrid RRF
     dense_req = AnnSearchRequest(data=[[0.1, 0.2, 0.3, 0.4]], anns_field="dense",
                                  param={"metric_type": "COSINE"}, limit=2)
-    sparse_req = AnnSearchRequest(data=["运费"], anns_field="sparse",
+    sparse_req = AnnSearchRequest(data=["违约金"], anns_field="sparse",
                                   param={"metric_type": "BM25"}, limit=2)
     hres = client.hybrid_search(COLL, reqs=[dense_req, sparse_req], ranker=RRFRanker(),
                                 limit=2, output_fields=["text"])

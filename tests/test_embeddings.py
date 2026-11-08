@@ -35,5 +35,5 @@ async def test_embed_texts_passes_model_and_input(monkeypatch):
 
 async def test_embed_query_returns_single_vector(monkeypatch):
     monkeypatch.setattr(embeddings, "_client", lambda: _FakeClient())
-    v = await embeddings.embed_query("邮费")
+    v = await embeddings.embed_query("违约金")
     assert v == [0.0, 0.0, 1.0]

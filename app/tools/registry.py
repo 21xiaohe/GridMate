@@ -94,7 +94,7 @@ def get_builtin_spec(name: str) -> ToolSpec | None:
 
 
 async def get_all_specs() -> list[ToolSpec]:
-    """内置 + MCP 现拉合并;重名 builtin 优先、后到丢弃告警(本章无重名:内置 query_logistics 已下线)。
+    """内置 + MCP 现拉合并;重名 builtin 优先、后到丢弃告警(本章无重名:内置 query_repair 已下线)。
 
     返回顺序必须稳定,别改成 set 或加 sorted:tools 定义跟 system 一样在模型请求的可缓存
     前缀里,顺序抖一下前缀就整段 miss。现在的顺序由三件事保证——scan_builtin 走的 pkgutil

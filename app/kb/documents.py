@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from app.kb import chunking
 
-_KEY_TERMS = ("退款", "退货", "时效", "运费", "邮费", "费用", "保修", "赔偿", "期限", "包邮")
+_KEY_TERMS = ("退费", "退补", "时效", "违约金", "复电", "费用", "换表", "赔偿", "期限", "缴费")
 # flywheel 起跨模块复用(confidence 关键条款信号 / review 写回打标),导出公共名
 KEY_TERMS = _KEY_TERMS
 

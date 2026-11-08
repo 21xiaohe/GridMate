@@ -57,13 +57,13 @@ async def test_topics_headline_ranks_by_count(client, monkeypatch):
     """「占前三」得真按问题量排:topic_distribution 给的是权威类目表顺序,不是排行榜。"""
     async def dist(*a, **kw):
         return {"total": 9, "latest": None, "classes": [
-            {"label": "退换货", "count": 1, "samples": []},
-            {"label": "物流", "count": 3, "samples": []},
-            {"label": "商品信息", "count": 5, "samples": []},
+            {"label": "退费退补", "count": 1, "samples": []},
+            {"label": "停电报修", "count": 3, "samples": []},
+            {"label": "用电咨询", "count": 5, "samples": []},
             {"label": "评价", "count": 0, "samples": []},
         ]}
     monkeypatch.setattr("app.db.repository.topic_distribution", dist)
 
     body = (await client.get("/api/admin/overview")).json()
     card = {m["key"]: m for m in body["modules"]}["topics"]
-    assert card["headline"] == "占前三:商品信息 5、物流 3、退换货 1"
+    assert card["headline"] == "占前三:用电咨询 5、停电报修 3、退费退补 1"

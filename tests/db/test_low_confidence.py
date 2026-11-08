@@ -6,13 +6,13 @@ from app.db import repository
 @pytest.mark.asyncio
 async def test_insert_low_confidence(db_session_factory):
     cid = await repository.create_conversation("u1")
-    lid = await repository.insert_low_confidence(cid, "邮费到底多少啊", "self_check", "证据不足")
+    lid = await repository.insert_low_confidence(cid, "违约金到底多少啊", "self_check", "证据不足")
     assert lid > 0
     factory = db_session_factory
     from sqlalchemy import text
     async with factory() as s:
         row = (await s.execute(text("SELECT raw_question, source, reason FROM low_confidence_questions WHERE id=:i"), {"i": lid})).first()
-    assert row.source == "self_check" and row.raw_question == "邮费到底多少啊"
+    assert row.source == "self_check" and row.raw_question == "违约金到底多少啊"
 
 
 @pytest.mark.asyncio

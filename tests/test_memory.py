@@ -18,8 +18,8 @@ def test_store_append_and_get_isolated_by_session():
 def test_trim_keeps_recent_and_starts_on_human():
     msgs = []
     for i in range(20):
-        msgs.append(HumanMessage(f"问题{i}:" + "喵" * 50))
-        msgs.append(AIMessage(f"回答{i}:" + "喵" * 50))
+        msgs.append(HumanMessage(f"问题{i}:" + "字" * 50))
+        msgs.append(AIMessage(f"回答{i}:" + "字" * 50))
     trimmed = trim_history(msgs, max_tokens=200)
     assert 0 < len(trimmed) < len(msgs)
     assert trimmed[0].type == "human"
@@ -71,21 +71,21 @@ def test_build_window_anchor_missing_degrades_to_trim():
 def test_build_window_token_cap_still_applies():
     msgs = _dialog(20)
     for m in msgs:
-        m.content = m.content + "喵" * 200   # 撑大 token
+        m.content = m.content + "字" * 200   # 撑大 token
     win = build_window(msgs, summary_upto_msg_id=0, max_tokens=300)
     assert 0 < len(win) < len(msgs)
     assert win[0].type == "human"            # trim start_on=human
 
 
 def test_build_window_never_returns_empty():
-    msgs = [HumanMessage("超长" + "喵" * 5000, id="db-1")]
+    msgs = [HumanMessage("超长" + "字" * 5000, id="db-1")]
     win = build_window(msgs, summary_upto_msg_id=0, max_tokens=10)
     assert win == msgs                       # 裁到空则宁可超预算也回退原窗
 
 
 def test_summary_helpers():
     assert summary_line(None) == "" and summary_line("") == ""
-    assert "订单1001" in summary_line("用户问过订单1001")
+    assert "工单1001" in summary_line("用户问过工单1001")
     assert summary_system(None) is None
-    ss = summary_system("用户问过订单1001")
-    assert isinstance(ss, SystemMessage) and "订单1001" in ss.content
+    ss = summary_system("用户问过工单1001")
+    assert isinstance(ss, SystemMessage) and "工单1001" in ss.content

@@ -1,6 +1,6 @@
 """挖知识的人工闸:kb-mine 自己不许写知识库,采纳才写。
 
-挖出来的问答对是模型从聊天记录里归纳的,质量参差:只对单笔订单成立的、夹带订单号
+挖出来的问答对是模型从聊天记录里归纳的,质量参差:只对单笔工单成立的、夹带工单号
 和收货地址的、把「稍等我帮您看看」当成答案的,都有。这种东西进了库,之后每次检索
 都可能被捞出来当依据。所以 mine() 挖完只落暂存表,入库口只有一个:
 /api/kb/staging/approve。
@@ -44,8 +44,8 @@ class _FakeRepo:
         return []
 
     async def list_conversations_with_messages(self):
-        return [(1, [type("M", (), {"role": "user", "content": "运费怎么算"})(),
-                     type("M", (), {"role": "assistant", "content": "满99包邮"})()])]
+        return [(1, [type("M", (), {"role": "user", "content": "违约金怎么算"})(),
+                     type("M", (), {"role": "assistant", "content": "满99缴费"})()])]
 
 
 @pytest.fixture
@@ -54,7 +54,7 @@ def fake_mine(monkeypatch):
     monkeypatch.setattr(mining, "repository", repo)
 
     async def fake_extract(texts, model=None):
-        return [mining.QaPair(question="运费怎么算", answer="满99包邮")]
+        return [mining.QaPair(question="违约金怎么算", answer="满99缴费")]
 
     monkeypatch.setattr(mining, "extract_qa", fake_extract)
     return repo

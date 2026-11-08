@@ -6,10 +6,10 @@ from app.core.coref import resolve
 
 # (history, query, 期望:'rewrite' 补出实体 / 'passthrough' 原样)
 CASES = [
-    ("用户:蓝牙耳机什么时候到货\n客服:预计明天送达", "这个能退吗", "rewrite"),
-    ("用户:订单1001买的猫粮\n客服:已发货", "它到哪了", "rewrite"),
-    ("", "蓝牙耳机的保修期是多久", "passthrough"),
-    ("", "退货运费谁承担", "passthrough"),
+    ("用户:智能电表什么时候来装\n客服:预计明天上门", "这个能退吗", "rewrite"),
+    ("用户:工单1001买的电能表\n客服:已装表", "它到哪了", "rewrite"),
+    ("", "智能电表的检定周期是多久", "passthrough"),
+    ("", "退费违约金谁承担", "passthrough"),
 ]
 
 

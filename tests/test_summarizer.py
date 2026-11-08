@@ -33,7 +33,7 @@ def test_compute_boundary_not_enough_turns():
 async def test_run_summary_updates_fields(db_session_factory, db_clean, monkeypatch):
     cid = await repo.create_conversation("u1")
     for t in range(12):
-        await repo.append_message(cid, "user", content=f"问题{t} 订单100{t}")
+        await repo.append_message(cid, "user", content=f"问题{t} 工单100{t}")
         await repo.append_message(cid, "assistant", content=f"回答{t}")
 
     async def fake_llm(old_summary, dialog):

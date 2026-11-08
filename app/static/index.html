@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>爪爪优选 · 智能客服</title>
+  <title>省级电网营销服务中心 · 智能客服</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'><rect x='2' y='2' width='4' height='4' fill='%232b2632'/><rect x='10' y='2' width='4' height='4' fill='%232b2632'/><rect x='2' y='4' width='12' height='9' fill='%232b2632'/><rect x='3' y='3' width='2' height='3' fill='%23ff9f57'/><rect x='11' y='3' width='2' height='3' fill='%23ff9f57'/><rect x='3' y='5' width='10' height='7' fill='%23ff9f57'/><rect x='5' y='7' width='1' height='2' fill='%232b2632'/><rect x='10' y='7' width='1' height='2' fill='%232b2632'/><rect x='7' y='9' width='2' height='1' fill='%23ff8095'/></svg>" />
   <style>
     :root {
@@ -371,13 +371,13 @@
     .modal-actions .submit:hover:not(:disabled) { background: #ff6a45; }
     .modal-actions button:active:not(:disabled) { transform: translate(3px, 3px); box-shadow: none; }
     .modal-actions .submit:disabled { background: #e8dcc8; color: var(--muted); cursor: not-allowed; }
-    /* ticket:退款表单只读订单号输入框 */
+    /* ticket:退费表单只读工单号输入框 */
     .ticket-field input {
       width: 100%; font-family: inherit; font-size: 13px; color: var(--muted);
       border: 3px solid var(--ink); background: #efe6d4;
       padding: 9px 10px; box-shadow: var(--shadow-sm);
     }
-    /* ticket:订单选择器卡片(interrupt 缺订单号时聊天流里点选) */
+    /* ticket:工单选择器卡片(interrupt 缺工单号时聊天流里点选) */
     .order-cards { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
     .order-card {
       text-align: left; border: 3px solid var(--ink); background: var(--cream);
@@ -458,8 +458,8 @@
     <header>
       <div class="avatar lg" data-cat></div>
       <div class="head-meta">
-        <span class="name">爪爪 · 智能客服</span>
-        <span class="status"><span class="dot-online"></span>ONLINE · 爪爪优选</span>
+        <span class="name">电小智 · 智能客服</span>
+        <span class="status"><span class="dot-online"></span>ONLINE · 省级电网营销服务中心</span>
       </div>
       <div class="spacer"></div>
       <button id="new-chat" type="button">＋ 新对话</button>
@@ -469,7 +469,7 @@
 
     <footer>
       <div class="composer">
-        <textarea id="input" rows="1" placeholder="输入消息,和爪爪聊聊吧~(回车发送 / Shift+回车换行)"></textarea>
+        <textarea id="input" rows="1" placeholder="输入消息,和电小智聊聊吧~(回车发送 / Shift+回车换行)"></textarea>
         <button id="send" type="button" aria-label="发送">
           <svg viewBox="0 0 16 16" shape-rendering="crispEdges" fill="currentColor">
             <rect x="2" y="7" width="8" height="2"/><rect x="8" y="5" width="2" height="2"/>
@@ -479,7 +479,7 @@
           </svg>
         </button>
       </div>
-      <p class="foot-note">爪爪是 AI 助手,涉及具体订单会为你转接人工核实</p>
+      <p class="foot-note">电小智是 AI 助手,涉及具体工单会为你转接人工核实</p>
     </footer>
     </div><!-- /.main -->
   </div>
@@ -488,12 +488,12 @@
   <div class="modal-mask" id="ticketMask">
     <div class="ticket-modal" role="dialog" aria-modal="true" aria-labelledby="ticketTitle">
       <h3 id="ticketTitle">创建工单</h3>
-      <p class="sub">爪爪会把问题登记成工单跟进处理</p>
+      <p class="sub">电小智会把问题登记成工单跟进处理</p>
       <div class="ticket-field">
         <label for="ticketType">反馈类别 <span class="req">*</span></label>
         <select id="ticketType">
           <option value="" disabled selected>请选择反馈类别…</option>
-          <option value="售后">售后</option>
+          <option value="用电业务">用电业务</option>
           <option value="投诉">投诉</option>
           <option value="咨询">咨询</option>
         </select>
@@ -512,18 +512,18 @@
 
   <div class="modal-mask" id="refundMask">
     <div class="ticket-modal" role="dialog" aria-modal="true" aria-labelledby="refundTitle">
-      <h3 id="refundTitle">提交退款工单</h3>
-      <p class="sub">确认订单与退款原因后提交,爪爪会为您登记退款申请</p>
+      <h3 id="refundTitle">提交退费工单</h3>
+      <p class="sub">确认工单与退费原因后提交,电小智会为您登记退费申请</p>
       <div class="ticket-field">
-        <label for="refundOrder">订单号</label>
+        <label for="refundOrder">工单号</label>
         <input id="refundOrder" type="text" readonly />
       </div>
       <div class="ticket-field">
-        <label for="refundReason">退款原因 <span class="req">*</span></label>
+        <label for="refundReason">退费原因 <span class="req">*</span></label>
         <select id="refundReason">
-          <option value="" disabled selected>请选择退款原因…</option>
+          <option value="" disabled selected>请选择退费原因…</option>
           <option value="七天无理由">七天无理由</option>
-          <option value="质量问题">质量问题</option>
+          <option value="计量故障">计量故障</option>
           <option value="发错货">发错货</option>
           <option value="不想要了">不想要了</option>
           <option value="其他">其他</option>
@@ -532,15 +532,15 @@
       <div class="ticket-err" id="refundErr"></div>
       <div class="modal-actions">
         <button type="button" class="cancel" id="refundCancel">取消</button>
-        <button type="button" class="submit" id="refundSubmit">提交退款</button>
+        <button type="button" class="submit" id="refundSubmit">提交退费</button>
       </div>
     </div>
   </div>
 
   <script>
-    const SESSION_KEY = "pawserve_session_id";      // 稳定用户标识,作 user_id
-    const CONV_KEY = "pawserve_conversation_id";     // 当前会话 id,由后端 done 帧回传
-    const SUGGESTIONS = ["退换货政策是怎样的?", "怎么查我的物流进度?", "猫粮怎么选?", "会员有什么权益?"];
+    const SESSION_KEY = "gridmate_session_id";      // 稳定用户标识,作 user_id
+    const CONV_KEY = "gridmate_conversation_id";     // 当前会话 id,由后端 done 帧回传
+    const SUGGESTIONS = ["阶梯电价是怎么分的?", "怎么查我的报修进度?", "DDZY666-Z 电表什么参数?", "峰谷电价怎么申请?"];
     const CAT_SVG =
       '<svg viewBox="0 0 16 16" shape-rendering="crispEdges">' +
       '<rect x="2" y="2" width="4" height="4" fill="#2b2632"/>' +
@@ -593,8 +593,8 @@
       wrap.className = "empty";
       wrap.innerHTML =
         '<div class="mascot">' + CAT_SVG + "</div>" +
-        "<h1>你好,我是爪爪</h1>" +
-        "<p>爪爪优选的智能客服,商品、订单、售后都能问我~</p>" +
+        "<h1>你好,我是电小智</h1>" +
+        "<p>省级电网营销服务中心的智能客服,业务、工单、用电业务都能问我~</p>" +
         '<div class="chips"></div>';
       const chips = wrap.querySelector(".chips");
       for (const s of SUGGESTIONS) {
@@ -835,10 +835,10 @@
       const bar = document.createElement("div");
       bar.className = "action-bar";
       for (const a of items) {
-        if (a.type === "select_order") {
-          // interrupt:报了不属于自己的订单号被拒,把他名下的单列出来点选。拒绝之后得给条出路,
+        if (a.type === "select_workorder") {
+          // interrupt:报了不属于自己的工单号被拒,把他名下的单列出来点选。拒绝之后得给条出路,
           // 否则用户既查不到,也不知道自己的单号是多少
-          renderOrderCards(bubble, a.orders || [], pickThenAsk);
+          renderOrderCards(bubble, a.workorders || [], pickThenAsk);
           continue;
         }
         const btn = document.createElement("button");
@@ -848,10 +848,10 @@
           btn.textContent = "转人工";
           btn.addEventListener("click", () => {
             btn.disabled = true;
-            // 纯前端模拟:显示已转接 + 客服小猫问候(本章不接真人系统)
+            // 纯前端模拟:显示已转接 + 智能助手问候(本章不接真人系统)
             const sys = addRow("bot"); sys.textContent = "已转接人工客服";
             const greet = addRow("bot");
-            greet.textContent = "您好,我是客服小猫,请问有什么可以帮您的";
+            greet.textContent = "您好,我是客服电小智,请问有什么可以帮您的";
             messagesEl.scrollTop = messagesEl.scrollHeight;
           });
         } else if (a.type === "create_ticket") {
@@ -859,13 +859,13 @@
           // 点「建工单」不再直接建单,而是弹出工单表单让用户选类别+填描述再提交
           btn.addEventListener("click", () => openTicketModal(btn));
         } else if (a.type === "refund_form") {
-          btn.textContent = "提交退款工单";
-          // ticket:能退时 Agent 调 submit_refund 被拦成此动作,点开退款表单(订单号只读+原因下拉)
+          btn.textContent = "提交退费工单";
+          // ticket:能退时 Agent 调 submit_refund 被拦成此动作,点开退费表单(工单号只读+原因下拉)
           btn.addEventListener("click", () => openRefundModal(btn, a.draft || {}));
         }
         bar.appendChild(btn);
       }
-      if (bar.children.length) bubble.appendChild(bar);   // 只有订单卡时不留一条空按钮栏
+      if (bar.children.length) bubble.appendChild(bar);   // 只有工单卡时不留一条空按钮栏
     }
 
     // ---------- agent:建工单表单弹窗控制 ----------
@@ -934,7 +934,7 @@
       }
     });
 
-    // ---------- ticket:退款表单弹窗控制(订单号只读 + 固定类目原因下拉)----------
+    // ---------- ticket:退费表单弹窗控制(工单号只读 + 固定类目原因下拉)----------
     const refundMask = document.getElementById("refundMask");
     const refundOrder = document.getElementById("refundOrder");
     const refundReason = document.getElementById("refundReason");
@@ -945,11 +945,11 @@
 
     function openRefundModal(triggerBtn, draft) {
       refundTriggerBtn = triggerBtn;
-      refundOrder.value = (draft && draft.order_id) || "";
+      refundOrder.value = (draft && draft.workorder_no) || "";
       refundReason.value = "";
       refundErr.textContent = "";
       refundSubmit.disabled = false;
-      refundSubmit.textContent = "提交退款";
+      refundSubmit.textContent = "提交退费";
       refundMask.classList.add("open");
     }
     function closeRefundModal() { refundMask.classList.remove("open"); refundTriggerBtn = null; }
@@ -960,7 +960,7 @@
     });
     refundSubmit.addEventListener("click", async () => {
       const reason = refundReason.value;
-      if (!reason) { refundErr.textContent = "请选择退款原因"; return; }
+      if (!reason) { refundErr.textContent = "请选择退费原因"; return; }
       refundErr.textContent = "";
       refundSubmit.disabled = true;
       refundSubmit.textContent = "提交中…";
@@ -968,33 +968,33 @@
         const resp = await fetch("/api/actions/create-refund", {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ conversation_id: getConversationId(),
-            order_id: refundOrder.value, reason }),
+            workorder_no: refundOrder.value, reason }),
         });
         const data = await resp.json();
         if (resp.ok) {
           if (refundTriggerBtn) refundTriggerBtn.disabled = true;
           closeRefundModal();
-          addRow("bot").textContent = "退款申请已提交:" + data.ticket_no;
+          addRow("bot").textContent = "退费申请已提交:" + data.ticket_no;
           messagesEl.scrollTop = messagesEl.scrollHeight;
         } else {
-          refundErr.textContent = "退款提交失败,请稍后重试";
+          refundErr.textContent = "退费提交失败,请稍后重试";
           refundSubmit.disabled = false;
-          refundSubmit.textContent = "提交退款";
+          refundSubmit.textContent = "提交退费";
         }
       } catch (e) {
-        refundErr.textContent = "退款提交失败,请稍后重试";
+        refundErr.textContent = "退费提交失败,请稍后重试";
         refundSubmit.disabled = false;
-        refundSubmit.textContent = "提交退款";
+        refundSubmit.textContent = "提交退费";
       }
     });
 
-    // ---------- ticket:订单选择器卡片(interrupt 缺订单号 → 聊天流点选 → resume 续跑)----------
+    // ---------- ticket:工单选择器卡片(interrupt 缺工单号 → 聊天流点选 → resume 续跑)----------
     // onPick 决定点完卡片干什么:ticket 是 resume 把图续跑下去;interrupt 归属校验拒绝之后
     // 没有待续跑的图,点了就当用户重新问一句(见 pickThenAsk)。卡片长相只此一份。
     function renderOrderCards(bubble, orders, onPick) {
       const intro = document.createElement("div");
       intro.className = "bubble-text";
-      intro.textContent = orders.length ? "请选择您要处理的订单:" : "没有查到可选订单,请直接提供订单号。";
+      intro.textContent = orders.length ? "请选择您要处理的工单:" : "没有查到可选工单,请直接提供工单号。";
       bubble.appendChild(intro);
       const wrap = document.createElement("div");
       wrap.className = "order-cards";
@@ -1003,8 +1003,8 @@
         card.type = "button";
         card.className = "order-card";
         card.innerHTML =
-          '<div class="oc-top">订单 ' + o.order_id + '</div>' +
-          '<div class="oc-mid">' + (o.product || "") + '</div>' +
+          '<div class="oc-top">工单 ' + o.workorder_no + '</div>' +
+          '<div class="oc-mid">' + (o.business_type || "") + '</div>' +
           '<div class="oc-bot">' + (o.status || "") + ' · ¥' + (o.amount ?? "") + '</div>';
         card.addEventListener("click", async () => {
           wrap.querySelectorAll(".order-card").forEach((c) => (c.disabled = true));
@@ -1019,13 +1019,13 @@
 
     // ticket:点完续跑图(有 interrupt 挂着)
     async function pickThenResume(o) {
-      addRow("user").textContent = "选择订单 " + o.order_id;
+      addRow("user").textContent = "选择工单 " + o.workorder_no;
       const nb = addRow("bot");
       setBusy(true);
       try {
         await streamInto(nb, () => fetch("/api/actions/resume", {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ conversation_id: getConversationId(), order_id: o.order_id }),
+          body: JSON.stringify({ conversation_id: getConversationId(), workorder_no: o.workorder_no }),
         }));
       } catch (e) {
         nb.className = "bubble error";
@@ -1037,7 +1037,7 @@
 
     // interrupt:归属校验拒绝之后给的出路。这轮已经答完了,没有图等着续跑,所以走正常发消息那条路
     async function pickThenAsk(o) {
-      await send("查一下订单 " + o.order_id);
+      await send("查一下工单 " + o.workorder_no);
     }
 
     // ---------- interrupt:工单预览确认卡(interrupt confirm_ticket → 确认提交/取消 → resume 续跑)----------
@@ -1119,7 +1119,7 @@
     }
 
     // 把一次 SSE 流(/api/chat 首轮 或 /api/actions/resume 续跑)渲染进 bubble;
-    // 遇 interrupt 按 kind 分发:select_order 渲染订单卡点选,confirm_ticket 渲染工单预览卡
+    // 遇 interrupt 按 kind 分发:select_workorder 渲染工单卡点选,confirm_ticket 渲染工单预览卡
     // (确认提交/取消),两者都在用户操作后开新气泡续跑。
     async function streamInto(bubble, doFetch) {
       showTyping(bubble);
@@ -1159,9 +1159,9 @@
         interrupt: (data) => {
           interrupted = true;
           if (!structured) { bubble.innerHTML = ""; structured = true; }
-          // interrupt:中断按 kind 分发——select_order 弹订单卡,confirm_ticket 弹工单预览卡
+          // interrupt:中断按 kind 分发——select_workorder 弹工单卡,confirm_ticket 弹工单预览卡
           if (data.kind === "confirm_ticket") renderTicketConfirm(bubble, data.preview || {});
-          else renderOrderCards(bubble, data.orders || []);
+          else renderOrderCards(bubble, data.workorders || []);
         },
       });
       if (interrupted) return;

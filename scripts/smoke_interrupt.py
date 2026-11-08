@@ -1,7 +1,7 @@
 """ticket 红线冒烟:interrupt/Command(resume) 在当前 langgraph 上的中断 surface 形状。
 不调聊天上游——只用一个纯 interrupt 节点。用法:.venv/bin/python -m scripts.smoke_interrupt
 
-钉死三件事(供 Task 7 fetch_order / Task 13 runtime 落地):
+钉死三件事(供 Task 7 fetch_workorder / Task 13 runtime 落地):
   A) ainvoke 遇中断返回态 __interrupt__ 键结构与取值路径
   B) Command(resume=v) 续跑,v 成为 interrupt() 返回值
   C) astream(stream_mode=["messages","updates"]) 中断出现在哪种 chunk(vs C' aget_state 探 pending)
@@ -25,12 +25,12 @@ class S(TypedDict):
 
 async def ask_order(state: S):
     picked = interrupt({"type": "select_order",
-                        "orders": [{"order_id": "1001"}, {"order_id": "2002"}]})
+                        "orders": [{"workorder_no": "1001"}, {"workorder_no": "2002"}]})
     return {"picked": picked}
 
 
 async def confirm(state: S):
-    return {"messages": [("ai", f"已选订单 {state['picked']}")]}
+    return {"messages": [("ai", f"已选工单 {state['picked']}")]}
 
 
 async def main():
@@ -46,7 +46,7 @@ async def main():
 
         # A) 非流式:首跑应带 __interrupt__
         config = {"configurable": {"thread_id": "smoke-int-1"}}
-        out = await graph.ainvoke({"messages": [("human", "我要退款")]}, config)
+        out = await graph.ainvoke({"messages": [("human", "我要退费")]}, config)
         print("A ainvoke keys=", list(out.keys()))
         print("A __interrupt__=", out.get("__interrupt__"))
         if out.get("__interrupt__"):
@@ -60,7 +60,7 @@ async def main():
         config2 = {"configurable": {"thread_id": "smoke-int-2"}}
         print("C astream chunks:")
         async for mode, chunk in graph.astream(
-                {"messages": [("human", "我要退款")]}, config2,
+                {"messages": [("human", "我要退费")]}, config2,
                 stream_mode=["messages", "updates"]):
             if mode == "updates":
                 print("  UPD keys=", list(chunk.keys()), "val=", chunk)
@@ -85,7 +85,7 @@ async def main():
             print("D GraphInterrupt first.value=", e.args[0][0].value if e.args else None)
         except RuntimeError as e:
             print("D RuntimeError(图外不能调 interrupt):", e)
-            print("D 结论:fetch_order 的缺单 interrupt 路径须经【编译图 ainvoke】测,"
+            print("D 结论:fetch_workorder 的缺单 interrupt 路径须经【编译图 ainvoke】测,"
                   "不能直接调节点函数(直接调会 RuntimeError,非 GraphInterrupt)。")
 
 

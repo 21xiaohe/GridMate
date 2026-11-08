@@ -10,7 +10,7 @@ from app.config import settings
 
 async def main() -> None:
     client = AsyncOpenAI(base_url=settings.embed_base_url, api_key=settings.embed_api_key)
-    resp = await client.embeddings.create(model=settings.embed_model, input=["邮费是多少", "运费怎么算"])
+    resp = await client.embeddings.create(model=settings.embed_model, input=["违约金是多少", "违约金怎么算"])
     dims = [len(d.embedding) for d in resp.data]
     print(f"返回 {len(resp.data)} 条向量,维度={dims}")
     assert dims and dims[0] == 1024, f"期望维度 1024,实际 {dims}"

@@ -21,9 +21,9 @@ def test_list_conversations_passes_user_id(conv_client, monkeypatch):
 
     async def fake_list(user_id):
         seen["user_id"] = user_id
-        return [{"id": 2, "status": "进行中", "preview": "猫粮怎么选",
+        return [{"id": 2, "status": "进行中", "preview": "电能表怎么选",
                  "has_summary": False, "updated_at": None},
-                {"id": 1, "status": "进行中", "preview": "订单1001到哪了",
+                {"id": 1, "status": "进行中", "preview": "工单1001到哪了",
                  "has_summary": True, "updated_at": None}]
     monkeypatch.setattr(api.repository, "list_conversations", fake_list)
 
@@ -41,7 +41,7 @@ def test_list_messages_serializes_dialog(conv_client, monkeypatch):
         return object()
 
     async def fake_msgs(cid):
-        return [SimpleNamespace(role="user", content="订单1001到哪了", created_at=None),
+        return [SimpleNamespace(role="user", content="工单1001到哪了", created_at=None),
                 SimpleNamespace(role="assistant", content="在路上", created_at=None)]
     monkeypatch.setattr(api.repository, "get_conversation", fake_get)
     monkeypatch.setattr(api.repository, "list_dialog_messages", fake_msgs)
@@ -49,7 +49,7 @@ def test_list_messages_serializes_dialog(conv_client, monkeypatch):
     r = conv_client.get("/api/conversations/7/messages")
     assert r.status_code == 200
     assert [(m["role"], m["content"]) for m in r.json()["items"]] == [
-        ("user", "订单1001到哪了"), ("assistant", "在路上")]
+        ("user", "工单1001到哪了"), ("assistant", "在路上")]
 
 
 def test_list_messages_404_when_missing(conv_client, monkeypatch):

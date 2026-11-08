@@ -8,12 +8,12 @@ from app.tools import registry
 
 class FaqInput(BaseModel):
     keyword: str = Field(description="用户咨询的政策/规则/操作类问题(可用原话)")
-    category: str | None = Field(default=None, description="可选:按品类过滤,如『运费』『退货』『商品手册』")
+    category: str | None = Field(default=None, description="可选:按品类过滤,如『违约金』『退费』『服务手册』")
 
 
 @tool(args_schema=FaqInput)
 async def query_faq(keyword: str, category: str | None = None) -> dict:
-    """查询常见问题/政策知识库(混合检索+重排)。用于政策、规则、时效、费用、商品手册等通用问题。
+    """查询常见问题/政策知识库(混合检索+重排)。用于政策、规则、时效、费用、服务手册等通用问题。
     返回带编号证据供作答引用;证据不足时返回 sufficient=False,请据此向用户拒答。"""
     u = await query_understanding.understand(keyword)
     query = u["standard"]
@@ -23,7 +23,7 @@ async def query_faq(keyword: str, category: str | None = None) -> dict:
     hits = await retrieval.search_knowledge(
         query, strategy="hybrid_rerank", category=category, bm25_text=bm25_text)
 
-    # 品类过滤稳健性:category 由模型自由填写,常猜错入库值(如「商品手册」≠ 实存「商品规格手册」),
+    # 品类过滤稳健性:category 由模型自由填写,常猜错入库值(如「服务手册」≠ 实存「计量规格手册」),
     # 精确过滤会把结果清空致误拒答。过滤后为空/全弱则回退到不过滤重试(过滤是优化、非硬约束)。
     if category and (not hits or hits[0]["rerank_score"] < settings.rerank_min_score):
         hits = await retrieval.search_knowledge(

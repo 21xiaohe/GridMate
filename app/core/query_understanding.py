@@ -34,7 +34,7 @@ async def understand(query: str) -> dict:
 async def expand_queries(query: str) -> list[str]:
     """把一句问题泛化成检索友好查询(强制 JSON 单字段,扁平 list[str] 避开 glm 502)。
     严格取前 3 条非空;模型异常/全空则回落 [query],保证 retrieve_policy 至少有一条可查。
-    只在 refund_flow 的 retrieve_policy 检索侧调(核心场景),商品咨询走 understand 的轻扩。"""
+    只在 refund_flow 的 retrieve_policy 检索侧调(核心场景),业务咨询走 understand 的轻扩。"""
     model = llm.structured(_Expanded)
     try:
         r: _Expanded = await (EXPAND_QUERIES_PROMPT | model).ainvoke({"query": query})

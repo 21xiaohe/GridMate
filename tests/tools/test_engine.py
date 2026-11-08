@@ -5,19 +5,19 @@ import pytest
 from app.tools import engine
 from app.tools.registry import ToolSpec
 
-SCHEMA = {"type": "object", "properties": {"order_id": {"type": "string"}}, "required": ["order_id"]}
+SCHEMA = {"type": "object", "properties": {"workorder_no": {"type": "string"}}, "required": ["workorder_no"]}
 TICKET_SCHEMA = {"type": "object", "properties": {"description": {"type": "string"}},
                  "required": ["description"]}
 
 
-def _spec(name="query_order", *, permission="read", source="builtin", tool=None,
+def _spec(name="query_workorder", *, permission="read", source="builtin", tool=None,
           schema=SCHEMA, timeout=None, inject=False, inject_user=False, fmt=None):
     return ToolSpec(name=name, description="测试工具", json_schema=schema, tool=tool,
                     permission=permission, source=source, timeout=timeout,
                     inject_conversation=inject, inject_user_id=inject_user, format_result=fmt)
 
 
-def _tool(fn, name="query_order"):
+def _tool(fn, name="query_workorder"):
     return type("T", (), {"name": name, "ainvoke": staticmethod(fn)})()
 
 
@@ -47,8 +47,8 @@ async def test_validation_blocks_and_feeds_back(audits):
     async def boom(_args):
         raise AssertionError("校验不过不许执行")
     spec = _spec(tool=_tool(boom))
-    run = await engine.execute_tool_call({"name": "query_order", "args": {}, "id": "c1"}, 1,
-                                         {"query_order": spec})
+    run = await engine.execute_tool_call({"name": "query_workorder", "args": {}, "id": "c1"}, 1,
+                                         {"query_workorder": spec})
     assert run.ok is False and run.status == "校验拦下"
     assert "参数校验未通过" in run.tool_message.content and run.tool_message.status == "error"
     assert audits[-1]["status"] == "校验拦下" and audits[-1]["retry_count"] == 0
@@ -82,8 +82,8 @@ async def test_transient_timeout_retries_then_gives_up(audits):
     async def slow(_args):
         await asyncio.sleep(1)
     spec = _spec(tool=_tool(slow), timeout=0.05)
-    run = await engine.execute_tool_call({"name": "query_order", "args": {"order_id": "1"}, "id": "c1"},
-                                         1, {"query_order": spec})
+    run = await engine.execute_tool_call({"name": "query_workorder", "args": {"workorder_no": "1"}, "id": "c1"},
+                                         1, {"query_workorder": spec})
     assert run.ok is False and run.status == "超时"
     assert run.retry_count == 2                      # settings.tool_max_retries 默认 2
     assert audits[-1]["status"] == "超时" and audits[-1]["retry_count"] == 2
@@ -97,8 +97,8 @@ async def test_business_error_not_retried(audits):
         calls["n"] += 1
         raise ValueError("业务错")                    # 非暂时性 → 不重试
     spec = _spec(tool=_tool(fail))
-    run = await engine.execute_tool_call({"name": "query_order", "args": {"order_id": "1"}, "id": "c1"},
-                                         1, {"query_order": spec})
+    run = await engine.execute_tool_call({"name": "query_workorder", "args": {"workorder_no": "1"}, "id": "c1"},
+                                         1, {"query_workorder": spec})
     assert run.ok is False and calls["n"] == 1 and "工具暂时不可用" in run.tool_message.content
 
 
@@ -109,43 +109,43 @@ async def test_retry_succeeds_second_attempt(audits):
         calls["n"] += 1
         if calls["n"] == 1:
             raise ConnectionError("网络抖动")
-        return {"order_id": "1", "status": "已发货"}
+        return {"workorder_no": "1", "status": "已装表"}
     spec = _spec(tool=_tool(flaky))
-    run = await engine.execute_tool_call({"name": "query_order", "args": {"order_id": "1"}, "id": "c1"},
-                                         1, {"query_order": spec})
+    run = await engine.execute_tool_call({"name": "query_workorder", "args": {"workorder_no": "1"}, "id": "c1"},
+                                         1, {"query_workorder": spec})
     assert run.ok is True and calls["n"] == 2 and run.retry_count == 1
-    assert "已发货" in run.tool_message.content       # ensure_ascii=False,中文不转义
+    assert "已装表" in run.tool_message.content       # ensure_ascii=False,中文不转义
     assert audits[-1]["status"] == "成功" and audits[-1]["retry_count"] == 1
 
 
 async def test_format_result_hook_translates_enum(audits):
     async def ok(_args):
-        return {"tracking_no": "SF1", "status_code": "IN_TRANSIT", "internal_ref": "x9"}
+        return {"repair_no": "RX1", "status_code": "ON_SITE", "internal_ref": "x9"}
 
     def fmt(d):
-        return {"tracking_no": d["tracking_no"],
-                "status": {"IN_TRANSIT": "运输中"}.get(d.get("status_code"), d.get("status_code"))}
-    spec = _spec("query_logistics", source="mcp", tool=_tool(ok, "query_logistics"),
-                 schema={"type": "object", "properties": {"tracking_no": {"type": "string"}},
-                         "required": ["tracking_no"]}, fmt=fmt)
-    run = await engine.execute_tool_call({"name": "query_logistics", "args": {"tracking_no": "SF1"}, "id": "c1"},
-                                         1, {"query_logistics": spec})
-    assert "运输中" in run.tool_message.content and "internal_ref" not in run.tool_message.content
+        return {"repair_no": d["repair_no"],
+                "status": {"ON_SITE": "现场处理中"}.get(d.get("status_code"), d.get("status_code"))}
+    spec = _spec("query_repair", source="mcp", tool=_tool(ok, "query_repair"),
+                 schema={"type": "object", "properties": {"repair_no": {"type": "string"}},
+                         "required": ["repair_no"]}, fmt=fmt)
+    run = await engine.execute_tool_call({"name": "query_repair", "args": {"repair_no": "RX1"}, "id": "c1"},
+                                         1, {"query_repair": spec})
+    assert "现场处理中" in run.tool_message.content and "internal_ref" not in run.tool_message.content
     assert audits[-1]["tool_source"] == "mcp"
 
 
 async def test_mcp_str_result_parsed_then_formatted(audits):
     async def ok(_args):
-        return '{"tracking_no": "SF1", "status_code": "IN_TRANSIT"}'   # MCP 工具常回 JSON 文本
+        return '{"repair_no": "RX1", "status_code": "ON_SITE"}'   # MCP 工具常回 JSON 文本
 
     def fmt(d):
-        return {"status": {"IN_TRANSIT": "运输中"}.get(d.get("status_code"))}
-    spec = _spec("query_logistics", source="mcp", tool=_tool(ok, "query_logistics"),
-                 schema={"type": "object", "properties": {"tracking_no": {"type": "string"}},
-                         "required": ["tracking_no"]}, fmt=fmt)
-    run = await engine.execute_tool_call({"name": "query_logistics", "args": {"tracking_no": "SF1"}, "id": "c1"},
-                                         1, {"query_logistics": spec})
-    assert run.ok and "运输中" in run.tool_message.content
+        return {"status": {"ON_SITE": "现场处理中"}.get(d.get("status_code"))}
+    spec = _spec("query_repair", source="mcp", tool=_tool(ok, "query_repair"),
+                 schema={"type": "object", "properties": {"repair_no": {"type": "string"}},
+                         "required": ["repair_no"]}, fmt=fmt)
+    run = await engine.execute_tool_call({"name": "query_repair", "args": {"repair_no": "RX1"}, "id": "c1"},
+                                         1, {"query_repair": spec})
+    assert run.ok and "现场处理中" in run.tool_message.content
 
 
 async def test_mcp_content_blocks_unwrapped(audits):
@@ -154,13 +154,13 @@ async def test_mcp_content_blocks_unwrapped(audits):
         return [{"type": "text", "text": '{"status_code": "DELIVERED"}', "id": "lc_random"}]
 
     def fmt(d):
-        return {"status": {"DELIVERED": "已签收"}.get(d.get("status_code"))}
-    spec = _spec("query_logistics", source="mcp", tool=_tool(ok, "query_logistics"),
-                 schema={"type": "object", "properties": {"tracking_no": {"type": "string"}},
-                         "required": ["tracking_no"]}, fmt=fmt)
-    run = await engine.execute_tool_call({"name": "query_logistics", "args": {"tracking_no": "SF1"}, "id": "c1"},
-                                         1, {"query_logistics": spec})
-    assert run.ok and "已签收" in run.tool_message.content and "lc_random" not in run.tool_message.content
+        return {"status": {"DELIVERED": "已完工"}.get(d.get("status_code"))}
+    spec = _spec("query_repair", source="mcp", tool=_tool(ok, "query_repair"),
+                 schema={"type": "object", "properties": {"repair_no": {"type": "string"}},
+                         "required": ["repair_no"]}, fmt=fmt)
+    run = await engine.execute_tool_call({"name": "query_repair", "args": {"repair_no": "RX1"}, "id": "c1"},
+                                         1, {"query_repair": spec})
+    assert run.ok and "已完工" in run.tool_message.content and "lc_random" not in run.tool_message.content
 
 
 async def test_malformed_external_schema_never_raises(audits):
@@ -177,10 +177,10 @@ async def test_malformed_external_schema_never_raises(audits):
 
 async def test_audit_fields_clamped_to_ddl_width(audits):
     """校验错误消息内嵌超长参数值、工具名由模型编造——审计字段按列宽收口,不许静默丢行。"""
-    spec = _spec(schema={"type": "object", "properties": {"order_id": {"type": "string", "maxLength": 3}},
-                         "required": ["order_id"]})
-    await engine.execute_tool_call({"name": "query_order", "args": {"order_id": "长" * 2000}, "id": "c1"},
-                                   1, {"query_order": spec})
+    spec = _spec(schema={"type": "object", "properties": {"workorder_no": {"type": "string", "maxLength": 3}},
+                         "required": ["workorder_no"]})
+    await engine.execute_tool_call({"name": "query_workorder", "args": {"workorder_no": "长" * 2000}, "id": "c1"},
+                                   1, {"query_workorder": spec})
     assert audits[-1]["status"] == "校验拦下" and len(audits[-1]["error_message"]) <= 500
     await engine.execute_tool_call({"name": "编" * 300, "args": {}, "id": "c2"}, 1, {})
     assert len(audits[-1]["tool_name"]) <= 128
@@ -204,16 +204,16 @@ async def test_spec_max_retries_zero_disables_retry(audits):
 async def test_formatter_exception_degrades_to_raw(audits):
     """格式化钩子炸了降级透传,别把成功结果报成失败。"""
     async def ok(_args):
-        return {"tracking_no": "SF1"}
+        return {"repair_no": "RX1"}
 
     def bad_fmt(d):
         raise KeyError("status_code")
-    spec = _spec("query_logistics", source="mcp", tool=_tool(ok, "query_logistics"),
-                 schema={"type": "object", "properties": {"tracking_no": {"type": "string"}},
-                         "required": ["tracking_no"]}, fmt=bad_fmt)
-    run = await engine.execute_tool_call({"name": "query_logistics", "args": {"tracking_no": "SF1"}, "id": "c1"},
-                                         1, {"query_logistics": spec})
-    assert run.ok is True and "SF1" in run.tool_message.content
+    spec = _spec("query_repair", source="mcp", tool=_tool(ok, "query_repair"),
+                 schema={"type": "object", "properties": {"repair_no": {"type": "string"}},
+                         "required": ["repair_no"]}, fmt=bad_fmt)
+    run = await engine.execute_tool_call({"name": "query_repair", "args": {"repair_no": "RX1"}, "id": "c1"},
+                                         1, {"query_repair": spec})
+    assert run.ok is True and "RX1" in run.tool_message.content
     assert audits[-1]["status"] == "成功"
 
 
@@ -223,10 +223,10 @@ async def test_audit_failure_never_blocks_execution(monkeypatch):
     monkeypatch.setattr(engine.repository, "insert_tool_audit", audit_boom)
 
     async def ok(_args):
-        return {"order_id": "1"}
+        return {"workorder_no": "1"}
     spec = _spec(tool=_tool(ok))
-    run = await engine.execute_tool_call({"name": "query_order", "args": {"order_id": "1"}, "id": "c1"},
-                                         1, {"query_order": spec})
+    run = await engine.execute_tool_call({"name": "query_workorder", "args": {"workorder_no": "1"}, "id": "c1"},
+                                         1, {"query_workorder": spec})
     assert run.ok is True                              # 审计失败不反拦
 
 
@@ -251,10 +251,10 @@ async def test_inject_user_id_after_validation(audits):
 
     async def ok(args):
         seen.update(args)
-        return {"order_id": args["order_id"]}
+        return {"workorder_no": args["workorder_no"]}
     spec = _spec(tool=_tool(ok), inject_user=True)
-    run = await engine.execute_tool_call({"name": "query_order", "args": {"order_id": "1001"}, "id": "c1"},
-                                         7, {"query_order": spec}, user_id="u-real")
+    run = await engine.execute_tool_call({"name": "query_workorder", "args": {"workorder_no": "1001"}, "id": "c1"},
+                                         7, {"query_workorder": spec}, user_id="u-real")
     assert run.ok is True and seen.get("user_id") == "u-real"
 
 
@@ -265,14 +265,14 @@ async def test_模型自己塞的身份一律被覆盖(audits):
 
     async def ok(args):
         seen.update(args)
-        return {"order_id": args["order_id"]}
+        return {"workorder_no": args["workorder_no"]}
     schema = {"type": "object",
-              "properties": {"order_id": {"type": "string"}, "user_id": {"type": "string"}},
-              "required": ["order_id"]}
+              "properties": {"workorder_no": {"type": "string"}, "user_id": {"type": "string"}},
+              "required": ["workorder_no"]}
     spec = _spec(tool=_tool(ok), schema=schema, inject_user=True)
     run = await engine.execute_tool_call(
-        {"name": "query_order", "args": {"order_id": "1001", "user_id": "u-victim"}, "id": "c1"},
-        7, {"query_order": spec}, user_id="u-real")
+        {"name": "query_workorder", "args": {"workorder_no": "1001", "user_id": "u-victim"}, "id": "c1"},
+        7, {"query_workorder": spec}, user_id="u-real")
     assert run.ok is True
     assert seen.get("user_id") == "u-real"      # 不是模型给的那个
 
@@ -284,8 +284,8 @@ async def test_没开注入的工具不会平白多出身份参数(audits):
         seen.update(args)
         return {"ok": True}
     spec = _spec(tool=_tool(ok))                 # inject_user=False
-    await engine.execute_tool_call({"name": "query_order", "args": {"order_id": "1001"}, "id": "c1"},
-                                   7, {"query_order": spec}, user_id="u-real")
+    await engine.execute_tool_call({"name": "query_workorder", "args": {"workorder_no": "1001"}, "id": "c1"},
+                                   7, {"query_workorder": spec}, user_id="u-real")
     assert "user_id" not in seen
 
 
@@ -293,6 +293,6 @@ async def test_result_summary_truncated_in_audit(audits):
     async def ok(_args):
         return {"blob": "长" * 1000}
     spec = _spec(tool=_tool(ok))
-    await engine.execute_tool_call({"name": "query_order", "args": {"order_id": "1"}, "id": "c1"},
-                                   1, {"query_order": spec})
+    await engine.execute_tool_call({"name": "query_workorder", "args": {"workorder_no": "1"}, "id": "c1"},
+                                   1, {"query_workorder": spec})
     assert len(audits[-1]["result_summary"]) <= 520 and "截断" in audits[-1]["result_summary"]

@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>爪爪优选 · 分类器评测详情</title>
+  <title>省级电网营销服务中心 · 分类器评测详情</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'><rect x='2' y='2' width='4' height='4' fill='%232b2632'/><rect x='10' y='2' width='4' height='4' fill='%232b2632'/><rect x='2' y='4' width='12' height='9' fill='%232b2632'/><rect x='3' y='3' width='2' height='3' fill='%23ff9f57'/><rect x='11' y='3' width='2' height='3' fill='%23ff9f57'/><rect x='3' y='5' width='10' height='7' fill='%23ff9f57'/><rect x='5' y='7' width='1' height='2' fill='%232b2632'/><rect x='10' y='7' width='1' height='2' fill='%232b2632'/><rect x='7' y='9' width='2' height='1' fill='%23ff8095'/></svg>" />
   <link rel="stylesheet" href="/static/acceptance.css" />
   <style>
@@ -277,14 +277,14 @@
         d.classifier.online ? ["pass", ":8110 在线"] : ["missing", ":8110 离线"]);
       const row = el("div", "tryrow");
       const input = el("input");
-      input.placeholder = "输入一句用户问题，比如：买大了想退";
-      input.value = "买大了想退";
+      input.placeholder = "输入一句用户问题，比如：电表走得快想换";
+      input.value = "电表走得快想换";
       const go = el("button", "btn go", "试分类");
       row.appendChild(input); row.appendChild(go);
       pTry.appendChild(row);
       const presets = el("div", "presets");
-      for (const t of ["买大了想退", "猫粮颗粒大不大，牙口不好的猫嚼得动吗",
-        "积分可以拿来抵运费吗，要是退货运费又是谁承担", "旧猫笼你们回收吗"]) {
+      for (const t of ["电表走得快想换", "DDZY666-Z 适不适合居民用电",
+        "电费积分可以拿来抵违约金吗，要是退费违约金又是谁承担", "旧电表你们回收吗"]) {
         const b = el("button", "btn sm", t.length > 14 ? t.slice(0, 14) + "…" : t);
         b.title = t;
         b.addEventListener("click", () => { input.value = t; go.click(); });

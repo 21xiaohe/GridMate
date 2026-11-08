@@ -13,12 +13,12 @@ def coll():
     name = f"test_kb_{uuid.uuid4().hex[:8]}"
     mc.ensure_collection(client, collection=name)
     rows = [
-        {"id": 1, "dense": [0.1] * 1024, "text": "运费 满99元包邮 不满10元",
-         "question": "运费怎么算", "answer": "满99包邮,否则10元",
-         "section_path": "运费政策", "content_type": "faq", "category": "运费"},
-        {"id": 2, "dense": [0.2] * 1024, "text": "智能猫砂盆 Pro 型号 自动清理",
+        {"id": 1, "dense": [0.1] * 1024, "text": "违约金 满99元缴费 不满10元",
+         "question": "违约金怎么算", "answer": "满99缴费,否则10元",
+         "section_path": "违约金政策", "content_type": "faq", "category": "违约金"},
+        {"id": 2, "dense": [0.2] * 1024, "text": "智能电能表 Pro 型号 自动清理",
          "question": "Pro 型号功能", "answer": "自动清理除臭",
-         "section_path": "商品手册 / 猫砂盆", "content_type": "manual", "category": "商品手册"},
+         "section_path": "服务手册 / 电表箱", "content_type": "manual", "category": "服务手册"},
     ]
     mc.upsert_vectors(client, rows, collection=name)
     mc.flush(client, collection=name)          # 新数据须 flush 才可被检索
@@ -30,20 +30,20 @@ def coll():
 
 def test_bm25_hits_model_number(coll):
     client, name = coll
-    hits = mc.bm25_search(client, "猫砂盆 Pro 型号", top_k=2, collection=name)
+    hits = mc.bm25_search(client, "电表箱 Pro 型号", top_k=2, collection=name)
     assert hits[0]["id"] == 2
-    assert hits[0]["section_path"] == "商品手册 / 猫砂盆"
+    assert hits[0]["section_path"] == "服务手册 / 电表箱"
 
 
 def test_hybrid_returns_scored_hits(coll):
     client, name = coll
-    hits = mc.hybrid_search(client, [0.1] * 1024, "运费", top_k=2, recall=10, collection=name)
+    hits = mc.hybrid_search(client, [0.1] * 1024, "违约金", top_k=2, recall=10, collection=name)
     assert hits
     assert {"id", "score", "question", "answer", "section_path", "content_type", "category"} <= hits[0].keys()
 
 
 def test_category_filter(coll):
     client, name = coll
-    hits = mc.bm25_search(client, "型号 运费", top_k=5, category="运费", collection=name)
-    assert all(h["category"] == "运费" for h in hits)
+    hits = mc.bm25_search(client, "型号 违约金", top_k=5, category="违约金", collection=name)
+    assert all(h["category"] == "违约金" for h in hits)
     assert all(h["id"] == 1 for h in hits)

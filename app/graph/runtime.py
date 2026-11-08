@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 ANSWER_NODES = {"main_agent"}
 # 确定性节点把答复写在 state['answer'],整块作为 delta 吐出
 DETERMINISTIC_ANSWER_NODES = {"script_reply", "complaint_reply", "fallback_reply"}
-# 产出编号引用的检索节点(知识路 retrieve_knowledge + 退款政策路 retrieve_policy)
+# 产出编号引用的检索节点(知识路 retrieve_knowledge + 退费政策路 retrieve_policy)
 CITATION_NODES = {"retrieve_knowledge", "retrieve_policy"}
 
 _graph = None
@@ -103,14 +103,14 @@ def _graph_input(user_id: str, message: str, cid: int, msg_id: int,
             "evidence_strong": False, "citations": [],
             "evidence_confidence": 0.0, "fallback_source": "", "retrieved_snapshot": [],
             "resolved_query": "", "intent_confidence": 0.0,
-            "order_id": "", "order_data": {},
+            "workorder_no": "", "workorder_data": {},
             "summary": summary, "summary_upto_msg_id": summary_upto,
             "trace": None}  # merge 通道:None=重置哨兵(见 merge_dict),清上一轮 trace 残留
 
 
 def _interrupt_payload(state: dict):
     """从终态提取中断负载(整个 __interrupt__[0].value:含 type + orders/preview 等);
-    无中断返回 None。interrupt 起中断不止订单选择器,负载透传、消费方按 type 分发。"""
+    无中断返回 None。interrupt 起中断不止工单选择器,负载透传、消费方按 type 分发。"""
     intr = state.get("__interrupt__")
     if not intr:
         return None
@@ -118,7 +118,7 @@ def _interrupt_payload(state: dict):
 
 
 async def run_turn(user_id, message, conversation_id) -> dict:
-    """非流式:落 user 消息 → ainvoke → 返回终态(供 /api/agent、eval)。遇 interrupt 带 orders。"""
+    """非流式:落 user 消息 → ainvoke → 返回终态(供 /api/agent、eval)。遇 interrupt 带 workorders。"""
     cid, summary, upto = await _ensure_conversation(user_id, conversation_id)
     msg_id = await repository.append_message(cid, "user", content=message)
     # flywheel:langfuse_session_id 让同一会话多轮在 Langfuse 界面串成一组(未挂回调时无害)
@@ -162,10 +162,10 @@ async def _stream_events(cid: int, stream_source) -> AsyncIterator[dict]:
             if "__interrupt__" in chunk:
                 payload = chunk["__interrupt__"][0].value
                 # 带上 conversation_id:中断时不发 done 帧,前端要靠这个才知道续跑用哪个会话。
-                # interrupt:负载按中断类型透传(select_order 带 orders,confirm_ticket 带 preview),
+                # interrupt:负载按中断类型透传(select_workorder 带 workorders,confirm_ticket 带 preview),
                 # 前端按 kind 分发。
                 ev = {"type": "interrupt", "kind": payload.get("type", ""), "conversation_id": cid}
-                for k in ("orders", "preview"):
+                for k in ("workorders", "preview"):
                     if payload.get(k) is not None:
                         ev[k] = payload[k]
                 yield ev
@@ -201,7 +201,7 @@ async def stream_turn(user_id, message, conversation_id) -> AsyncIterator[dict]:
 
 
 async def stream_resume(conversation_id: int, resume_value) -> AsyncIterator[dict]:
-    """前端点选订单后续跑同一会话的暂停流(Command(resume) 续 astream,事件与 stream_turn 同构)。"""
+    """前端点选工单后续跑同一会话的暂停流(Command(resume) 续 astream,事件与 stream_turn 同构)。"""
     if await repository.get_conversation(conversation_id) is None:
         raise ConversationNotFound(conversation_id)
     async for ev in _stream_events(conversation_id, Command(resume=resume_value)):

@@ -8,12 +8,12 @@ INTENT_TO_ROUTE: dict[str, str] = {
     "投诉": "escalate",
     "闲聊": "fallback_script",
     "其他": "fallback_script",
-    "商品咨询": "knowledge",
-    "退款退货": "refund_flow",
-    "售后": "refund_flow",
+    "业务咨询": "knowledge",
+    "电费退费": "refund_flow",
+    "欠费违约金": "refund_flow",
     "人工": "business",   # interrupt:明确要求建工单/转人工 → 主力 Agent 走 create_ticket 确认流
-    "物流": "business",
-    "订单": "business",
+    "停电报修": "business",
+    "工单": "business",
 }
 
 

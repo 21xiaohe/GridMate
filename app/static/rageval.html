@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>爪爪优选 · RAG 评估</title>
+  <title>省级电网营销服务中心 · RAG 评估</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'><rect x='2' y='2' width='4' height='4' fill='%232b2632'/><rect x='10' y='2' width='4' height='4' fill='%232b2632'/><rect x='2' y='4' width='12' height='9' fill='%232b2632'/><rect x='3' y='3' width='2' height='3' fill='%23ff9f57'/><rect x='11' y='3' width='2' height='3' fill='%23ff9f57'/><rect x='3' y='5' width='10' height='7' fill='%23ff9f57'/><rect x='5' y='7' width='1' height='2' fill='%232b2632'/><rect x='10' y='7' width='1' height='2' fill='%232b2632'/><rect x='7' y='9' width='2' height='1' fill='%23ff8095'/></svg>" />
   <link rel="stylesheet" href="/static/acceptance.css" />
   <style>
@@ -644,7 +644,7 @@
       p.appendChild(el("h2", null, "怎么读这份报告"));
       const box = el("div", "notes");
       const NOTES = [
-        ["三类查询,三种偏科", "型号桶特意放了易混型号族(几款饮水机、猫砂盆),纯向量会认错型号;口语桶换了说法,纯 BM25 关键词对不齐。混合 + 重排同时补上这两块短板。"],
+        ["三类查询,三种偏科", "型号桶特意放了易混型号族(几款饮水机、电表箱),纯向量会认错型号;口语桶换了说法,纯 BM25 关键词对不齐。混合 + 重排同时补上这两块短板。"],
         ["融合 ≠ 重排", "纯 RRF 融合在口语桶反被弱侧的 BM25 拖累。重排把正确答案顶回前面,总体 MRR 才登顶,这就是「要重排」的直接证据。"],
         ["确定性 vs LLM 裁判", "检索段与证据覆盖度不依赖大模型,重跑可复现。答案覆盖度与忠实度由裁判判定,有轻微浮动。生成段带超时与失败跳过,单点故障不拖垮整轮。"],
         ["两道生成前证据闸", "机械低分闸与语义自评闸都在生成之前把关。证据不足就拒答,问题落进 low_confidence_questions,库外的题应当全部拒答。"],

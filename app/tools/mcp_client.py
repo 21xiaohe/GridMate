@@ -17,28 +17,28 @@ def _translate(mapping: dict[str, str], code):
     return mapping.get(code, code)
 
 
-def _fmt_logistics(d: dict) -> dict:
-    return {"tracking_no": d.get("tracking_no"),
-            "status": _translate({"PICKED_UP": "已揽件", "IN_TRANSIT": "运输中",
-                                  "DELIVERING": "派送中", "DELIVERED": "已签收"}, d.get("status_code")),
-            "current_city": d.get("current_city"), "trace": d.get("trace")}
+def _fmt_repair(d: dict) -> dict:
+    return {"repair_no": d.get("repair_no"),
+            "status": _translate({"ACCEPTED": "已受理", "DISPATCHING": "抢修派单中",
+                                  "ON_SITE": "现场处理中", "RESTORED": "已复电"}, d.get("status_code")),
+            "current_site": d.get("current_site"), "trace": d.get("trace")}
 
 
 def _fmt_warranty(d: dict) -> dict:
-    return {"order_id": d.get("order_id"),
-            "warranty": _translate({"IN_WARRANTY": "在保", "EXPIRED": "已过保"}, d.get("warranty_code")),
+    return {"workorder_no": d.get("workorder_no"),
+            "warranty": _translate({"IN_WARRANTY": "维护期内", "EXPIRED": "已出维护期"}, d.get("warranty_code")),
             "warranty_until": d.get("warranty_until")}
 
 
 def _fmt_return(d: dict) -> dict:
-    return {"order_id": d.get("order_id"),
-            "return_status": _translate({"AUDITING": "审核中", "RETURNING": "退货中",
-                                         "REFUNDED": "已退款", "NONE": "无退货记录"}, d.get("return_code")),
+    return {"workorder_no": d.get("workorder_no"),
+            "return_status": _translate({"AUDITING": "审核中", "RETURNING": "退费中",
+                                         "REFUNDED": "已退费", "NONE": "无退费记录"}, d.get("return_code")),
             "updated_at": d.get("updated_at")}
 
 
 # 结果格式化我们侧登记(挑回答用得上的字段 + 内部枚举码翻人话);未登记的 MCP 工具透传
-FORMATTERS = {"query_logistics": _fmt_logistics, "query_warranty": _fmt_warranty,
+FORMATTERS = {"query_repair": _fmt_repair, "query_warranty": _fmt_warranty,
               "query_return_status": _fmt_return}
 
 _client: MultiServerMCPClient | None = None
@@ -46,8 +46,8 @@ _client: MultiServerMCPClient | None = None
 
 def _connections() -> dict:
     return {
-        "logistics": {"transport": "streamable_http", "url": settings.mcp_logistics_url},
-        "aftersales": {"transport": "streamable_http", "url": settings.mcp_aftersales_url},
+        "repair": {"transport": "streamable_http", "url": settings.mcp_repair_url},
+        "business": {"transport": "streamable_http", "url": settings.mcp_business_url},
     }
 
 

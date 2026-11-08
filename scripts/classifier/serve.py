@@ -15,7 +15,7 @@ from scripts.classifier.inference_lib import apply_threshold
 
 DIR = pathlib.Path("data/classifier/onnx")
 
-app = FastAPI(title="pawserve classifier topic classifier")
+app = FastAPI(title="gridmate classifier topic classifier")
 _sess = ort.InferenceSession(str(DIR / "model.onnx"), providers=["CPUExecutionProvider"])
 _tok = Tokenizer.from_file(str(DIR / "tokenizer.json"))
 _tok.enable_truncation(max_length=128)

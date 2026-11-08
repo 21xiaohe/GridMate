@@ -1,7 +1,7 @@
 from app.kb import chunking
 
 TABLE = "\n".join([
-    "| 商品 | 价格 |",
+    "| 业务 | 价格 |",
     "| --- | --- |",
     "| A | 1 |",
     "| B | 2 |",
@@ -17,10 +17,10 @@ def test_is_table_block():
 def test_split_table_replicates_header():
     out = chunking.split_table_rows(TABLE, max_rows=2)
     assert len(out) == 2
-    assert out[0] == "| 商品 | 价格 |\n| --- | --- |\n| A | 1 |\n| B | 2 |"
-    assert out[1] == "| 商品 | 价格 |\n| --- | --- |\n| C | 3 |"
+    assert out[0] == "| 业务 | 价格 |\n| --- | --- |\n| A | 1 |\n| B | 2 |"
+    assert out[1] == "| 业务 | 价格 |\n| --- | --- |\n| C | 3 |"
     for block in out:
-        assert block.startswith("| 商品 | 价格 |\n| --- | --- |")
+        assert block.startswith("| 业务 | 价格 |\n| --- | --- |")
 
 
 def test_split_table_small_stays_whole():

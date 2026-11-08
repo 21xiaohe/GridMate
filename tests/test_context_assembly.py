@@ -20,11 +20,11 @@ def test_agent_messages_order_with_summary():
     摘要不再单独占一条 system:上游模板会把所有 system 上提合并,摘要每会话不同,
     放 system 里会把工具 schema 挤到可变内容之后,前缀缓存整段作废(实测 2048→0)。
     """
-    ms = _agent_messages(_state(summary="用户问过订单1001", upto=0))
-    assert isinstance(ms[0], SystemMessage) and "爪爪" in ms[0].content   # 人设红线打头
+    ms = _agent_messages(_state(summary="用户问过工单1001", upto=0))
+    assert isinstance(ms[0], SystemMessage) and "电小智" in ms[0].content   # 人设红线打头
     assert sum(isinstance(m, SystemMessage) for m in ms) == 1            # 全列表只此一条
     assert isinstance(ms[1], HumanMessage)
-    ctx = [m for m in ms if "订单1001" in (m.content or "")]
+    ctx = [m for m in ms if "工单1001" in (m.content or "")]
     assert ctx and not isinstance(ctx[0], SystemMessage)                 # 摘要走用户侧
 
 
@@ -41,8 +41,8 @@ def test_agent_messages_window_cut_by_boundary():
 
 
 def test_history_text_prepends_summary_and_windows():
-    text = _history_text(_state(n_turns=6, summary="用户问过订单1001", upto=6))
-    assert text.startswith("(早前对话摘要:用户问过订单1001")
+    text = _history_text(_state(n_turns=6, summary="用户问过工单1001", upto=6))
+    assert text.startswith("(早前对话摘要:用户问过工单1001")
     assert "问题0" not in text                       # 边界前原文不出现
     assert "问题3" in text                           # 窗内原文在(排除当前最后一条 human)
 
@@ -55,12 +55,12 @@ def test_history_text_no_summary_same_as_before():
 def test_log_model_context_shows_summary_and_window(caplog):
     import logging
     from app.graph.nodes import _agent_messages, _log_model_context
-    state = _state(n_turns=6, summary="用户问过订单1001,留了手机13800138000", upto=6)
+    state = _state(n_turns=6, summary="用户问过工单1001,留了手机13800138000", upto=6)
     msgs = _agent_messages(state)
     with caplog.at_level(logging.INFO, logger="app.graph.nodes"):
         _log_model_context(state, msgs)
     text = caplog.text
     assert "model_ctx" in text
-    assert "订单1001" in text                 # 摘要全文可见
+    assert "工单1001" in text                 # 摘要全文可见
     assert "[human] '问题3" in text           # 滑窗每条消息角色+预览可见
     assert "问题0" not in text                # 边界前原文不进上下文,也不该出现在日志

@@ -17,7 +17,7 @@ def test_attach_returns_graph_unchanged_when_disabled(monkeypatch):
 
 def test_tag_intent_noop_when_disabled(monkeypatch):
     monkeypatch.setattr("app.config.settings.langfuse_public_key", "")
-    observability.tag_intent("商品咨询", 0.9)   # 不许抛异常、不许要求 langfuse 已装好服务
+    observability.tag_intent("业务咨询", 0.9)   # 不许抛异常、不许要求 langfuse 已装好服务
 
 
 def test_get_langfuse_none_when_disabled(monkeypatch):

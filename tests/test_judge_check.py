@@ -7,8 +7,8 @@
 from scripts.judge_check import (evidence_from_citations, expected_faithful,
                                  gradable, verdict_row)
 
-CITS = [{"n": 1, "question": "退款时效", "answer": "到账时效以平台售后规则为准。"},
-        {"n": 2, "question": "处理时限", "answer": "退款 3 个工作日。"}]
+CITS = [{"n": 1, "question": "退费时效", "answer": "到账时效以当地供电公司公示规则为准。"},
+        {"n": 2, "question": "处理时限", "answer": "退费 3 个工作日。"}]
 
 
 class _Row:
@@ -19,11 +19,11 @@ class _Row:
 def test_角标原文拼回评估时那份证据():
     # 格式与 eval_hybrid_strategies._format_evidence 逐字一致:[n] 问题:答案,一条一行
     assert evidence_from_citations(CITS) == (
-        "[1] 退款时效:到账时效以平台售后规则为准。\n[2] 处理时限:退款 3 个工作日。")
+        "[1] 退费时效:到账时效以当地供电公司公示规则为准。\n[2] 处理时限:退费 3 个工作日。")
 
 
 def test_没记_n_的老快照按顺序补角标():
-    assert evidence_from_citations([{"question": "运费", "answer": "买家承担。"}]) == "[1] 运费:买家承担。"
+    assert evidence_from_citations([{"question": "违约金", "answer": "买家承担。"}]) == "[1] 违约金:买家承担。"
     assert evidence_from_citations(None) == ""
 
 

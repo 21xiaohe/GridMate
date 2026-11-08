@@ -4,7 +4,7 @@ import asyncio
 
 from app.core.query_understanding import expand_queries
 
-CASES = ["蓝牙耳机还能申请退货吗", "订单1001的猫粮质量问题能退款吗", "智能猫砂盆坏了怎么保修"]
+CASES = ["智能电表还能申请退费吗", "工单1001的电能表计量故障能退费吗", "智能电能表坏了怎么换表维护"]
 
 
 async def main():

@@ -6,10 +6,10 @@ from httpx import ASGITransport, AsyncClient
 from app.api import rageval as rageval_api
 from app.db import repository
 
-CITS = [{"n": 1, "chunk_id": 141, "section_path": "退货退款政策 / 退换货运费承担",
-         "question": "退换货运费承担", "answer": "无理由退货的退回运费由买家承担…"},
-        {"n": 2, "chunk_id": 140, "section_path": "退货退款政策 / 换货政策 / 换货运费",
-         "question": "换货运费", "answer": "非质量问题的换货,往返运费由买家承担…"}]
+CITS = [{"n": 1, "chunk_id": 141, "section_path": "退费政策 / 退费违约金承担",
+         "question": "退费违约金承担", "answer": "无理由退费的退回违约金由买家承担…"},
+        {"n": 2, "chunk_id": 140, "section_path": "退费政策 / 换表政策 / 换表违约金",
+         "question": "换表违约金", "answer": "非计量故障的换表,往返违约金由买家承担…"}]
 
 
 @pytest.fixture
@@ -27,9 +27,9 @@ async def client(app, db_session_factory):
 
 async def _add(eval_id="A43", **kw):
     kw.setdefault("bucket", "A_policy")
-    kw.setdefault("query", "少发漏发导致的退换货,运费由谁承担")
-    kw.setdefault("answer", "换货往返运费也由平台承担[3]。")
-    kw.setdefault("reason", "证据区分了非质量问题由买家承担,客服遗漏条件范围。")
+    kw.setdefault("query", "抄表差错导致的退费,违约金由谁承担")
+    kw.setdefault("answer", "换表往返违约金也由平台承担[3]。")
+    kw.setdefault("reason", "证据区分了非计量故障由买家承担,客服遗漏条件范围。")
     return await repository.upsert_faith_case(eval_id, **kw)
 
 
@@ -42,7 +42,7 @@ async def test_首次写入默认未解决(client):
     assert item["id"] == cid and item["status"] == "未解决" and item["seen_count"] == 1
     # 角标原文如实带出来:追溯时要能看到当时喂进去的是哪几块
     assert [c["n"] for c in item["citations"]] == [1, 2]
-    assert item["citations"][1]["section_path"].endswith("换货运费")
+    assert item["citations"][1]["section_path"].endswith("换表违约金")
 
 
 async def test_同一题再判编造不新增行只累加(client):

@@ -26,7 +26,7 @@ async def test_create_ticket_injects_conversation_id_and_writes(db_session_facto
         await s.commit()
         cid = conv.id
     r = await create_ticket.ainvoke(
-        {"description": "商品损坏要退货", "ticket_type": "售后", "conversation_id": cid}
+        {"description": "业务损坏要退费", "ticket_type": "用电业务", "conversation_id": cid}
     )
     assert r["ticket_no"].startswith("T")
     async with db_session_factory() as s:

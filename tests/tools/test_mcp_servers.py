@@ -26,9 +26,9 @@ def _wait_port(port: int, timeout: float = 10.0) -> None:
 
 @pytest.fixture(scope="module")
 def mcp_procs():
-    p1 = subprocess.Popen([sys.executable, str(_ROOT / "mcp_servers/logistics_server.py")],
+    p1 = subprocess.Popen([sys.executable, str(_ROOT / "mcp_servers/repair_server.py")],
                           env={**os.environ, "PORT": "18101"})
-    p2 = subprocess.Popen([sys.executable, str(_ROOT / "mcp_servers/aftersales_server.py")],
+    p2 = subprocess.Popen([sys.executable, str(_ROOT / "mcp_servers/business_server.py")],
                           env={**os.environ, "PORT": "18102"})
     try:
         _wait_port(18101)
@@ -43,7 +43,7 @@ def mcp_procs():
 
 def _client() -> MultiServerMCPClient:
     return MultiServerMCPClient({
-        "logistics": {"transport": "streamable_http", "url": "http://127.0.0.1:18101/mcp"},
+        "repair": {"transport": "streamable_http", "url": "http://127.0.0.1:18101/mcp"},
         "aftersales": {"transport": "streamable_http", "url": "http://127.0.0.1:18102/mcp"},
     }, handle_tool_errors=False)
 
@@ -51,7 +51,7 @@ def _client() -> MultiServerMCPClient:
 async def test_list_tools_three_essentials(mcp_procs):
     tools = await _client().get_tools()
     by = {t.name: t for t in tools}
-    assert set(by) == {"query_logistics", "query_warranty", "query_return_status"}
+    assert set(by) == {"query_repair", "query_warranty", "query_return_status"}
     for t in by.values():
         assert t.description                                   # 用途描述
         schema = t.args_schema if isinstance(t.args_schema, dict) else t.args_schema.model_json_schema()
@@ -66,9 +66,9 @@ def _text_of(result) -> str:
     return str(result)
 
 
-async def test_invoke_logistics_stable_mock(mcp_procs):
-    tools = {t.name: t for t in await _client().get_tools(server_name="logistics")}
-    r1 = await tools["query_logistics"].ainvoke({"tracking_no": "SF123"})
-    r2 = await tools["query_logistics"].ainvoke({"tracking_no": "SF123"})
+async def test_invoke_repair_stable_mock(mcp_procs):
+    tools = {t.name: t for t in await _client().get_tools(server_name="repair")}
+    r1 = await tools["query_repair"].ainvoke({"repair_no": "SF123"})
+    r2 = await tools["query_repair"].ainvoke({"repair_no": "SF123"})
     assert _text_of(r1) == _text_of(r2)                        # 种子稳定
     assert "status_code" in _text_of(r1)                       # 内部枚举码在(client 侧翻译是引擎的事)

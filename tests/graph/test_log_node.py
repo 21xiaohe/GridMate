@@ -22,8 +22,8 @@ async def test_log_node_persists_assistant(monkeypatch):
         return 1
 
     monkeypatch.setattr(nodes.repository, "append_message", fake_append)
-    await nodes.log_node({"conversation_id": 8, "intent": "订单", "route": "business",
-                          "messages": [AIMessage("订单已发货")], "trace": {"forced_rag": False}})
+    await nodes.log_node({"conversation_id": 8, "intent": "工单", "route": "business",
+                          "messages": [AIMessage("工单已装表")], "trace": {"forced_rag": False}})
     assert saved["cid"] == 8
     assert saved["role"] == "assistant"
-    assert saved["content"] == "订单已发货"
+    assert saved["content"] == "工单已装表"

@@ -49,7 +49,7 @@ def main() -> None:
     model = AutoModelForSequenceClassification.from_pretrained(MODEL_DIR)
     model.eval()
     wrapper = LogitsWrapper(model)
-    sample = tokenizer(["买大了想退", "快递到哪了"], padding=True, return_tensors="pt")
+    sample = tokenizer(["买大了想退", "抢修到哪了"], padding=True, return_tensors="pt")
     dyn = {0: "batch", 1: "seq"}
     torch.onnx.export(
         wrapper,

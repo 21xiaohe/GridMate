@@ -8,7 +8,7 @@ def test_seventeen_unique_classes():
 
 
 def test_four_leads_first():
-    assert TOPIC_NAMES[:4] == ("退换货", "物流", "尺码", "发票")
+    assert TOPIC_NAMES[:4] == ("退费退补", "停电报修", "计量电表", "电费发票")
 
 
 def test_every_class_has_boundary_examples_severity():
@@ -21,7 +21,7 @@ def test_every_class_has_boundary_examples_severity():
 def test_label_id_roundtrip():
     for name, i in LABEL2ID.items():
         assert ID2LABEL[i] == name
-    assert LABEL2ID["退换货"] == 0 and LABEL2ID["其他"] == 16
+    assert LABEL2ID["退费退补"] == 0 and LABEL2ID["其他"] == 16
 
 
 def test_terminology_table_covers_all():

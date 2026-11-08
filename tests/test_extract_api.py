@@ -17,15 +17,15 @@ def teardown_function():
 
 def test_extract_returns_structured_json():
     ticket = AfterSalesTicket(
-        order_id="MH20260701123", request_type="退款", expected_solution="到货损坏要求退款"
+        workorder_no="GD20260701123", request_type="退费", expected_solution="装表损坏要求退费"
     )
     client = override(RunnableLambda(lambda _: ticket))
-    resp = client.post("/api/extract", json={"text": "订单 MH20260701123 散架了,退款"})
+    resp = client.post("/api/extract", json={"text": "工单 GD20260701123 表壳破损了,退费"})
     assert resp.status_code == 200
     assert resp.json() == {
-        "order_id": "MH20260701123",
-        "request_type": "退款",
-        "expected_solution": "到货损坏要求退款",
+        "workorder_no": "GD20260701123",
+        "request_type": "退费",
+        "expected_solution": "装表损坏要求退费",
     }
 
 

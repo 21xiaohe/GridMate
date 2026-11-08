@@ -52,7 +52,7 @@ async def lifespan(app: FastAPI):
     try:
         from app.core import retrieval
         for _ in range(15):
-            hits = await retrieval.search_knowledge("退货运费", strategy="bm25", top_k=1)
+            hits = await retrieval.search_knowledge("退费违约金", strategy="bm25", top_k=1)
             if hits:
                 logger.info("Milvus 预热完成,集合可检索")
                 break
@@ -68,7 +68,7 @@ async def lifespan(app: FastAPI):
     await runtime.close_graph()
 
 
-app = FastAPI(title="PawServe", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="GridMate", version="0.1.0", lifespan=lifespan)
 app.include_router(actions_router)
 app.include_router(chat_router)
 app.include_router(extract_router)

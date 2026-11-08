@@ -1,7 +1,7 @@
 """知识库录入 API:切块预览是 dry-run、录入按指纹查重、参数白名单挡住乱传。
 
 重点锁两条容易回归的口径:
-  1. 预览不写库——按了预览再看库存,一块都不该多;
+  1. 预览不写库——按了预览再看备表,一块都不该多;
   2. 同一份正文重复录入全跳过,而同一节切出的多块不许被当成重复误杀。
 """
 import pytest
@@ -11,15 +11,15 @@ from httpx import ASGITransport, AsyncClient
 from app.api import kb as kb_api
 from app.db import repository
 
-MD = """# 会员权益
+MD = """# 电价档位权益
 
-## 运费与包邮
+## 违约金与缴费
 
-满 99 元包邮,未满收 10 元运费。偏远地区运费 20 元,不参与包邮。
+满 99 元缴费,未满收 10 元违约金。偏远地区违约金 20 元,不参与缴费。
 
-## 发货时效
+## 装表时效
 
-现货 48 小时内发货,预售按商品页标注的时间发。
+现货 48 小时内装表,预售按业务页标注的时间发。
 """
 
 
@@ -53,8 +53,8 @@ async def test_preview_is_dry_run(client):
     body = resp.json()
     assert body["total"] == 2                       # 两个二级标题 → 两节两块
     assert body["features"]["sections"] == 2
-    assert body["chunks"][0]["section_path"] == "会员权益 / 运费与包邮"
-    assert body["chunks"][0]["is_key_clause"] is True   # 命中「运费/包邮」
+    assert body["chunks"][0]["section_path"] == "电价档位权益 / 违约金与缴费"
+    assert body["chunks"][0]["is_key_clause"] is True   # 命中「违约金/缴费」
     assert body["duplicates"] == 0 and body["dedup_known"] is True
     assert await repository.knowledge_stats() == {          # 预览不写库
         "total": 0, "pending": 0, "done": 0, "by_content_type": {}, "key_clause": 0}
@@ -88,14 +88,14 @@ async def test_ingest_then_reingest_is_idempotent(client):
 async def test_ingest_keeps_multiple_pieces_of_one_section(client):
     """同一节切出的多块共用节标题,只按问法查重会把它们误杀成重复——这里锁住不许。"""
     rows = "\n".join(f"| 型号 {i} | 参数 {i} | 备注 {i} |" for i in range(24))
-    md = ("# 商品规格\n\n## 猫爬架\n\n| 型号 | 参数 | 备注 |\n|---|---|---|\n" + rows + "\n")
+    md = ("# 计量规格\n\n## 用电信息采集终端\n\n| 型号 | 参数 | 备注 |\n|---|---|---|\n" + rows + "\n")
     resp = await client.post("/api/kb/ingest",
                              json={"text": md, "content_type": "spec", "vectorize": False})
     body = resp.json()
     assert body["chunks"] > 1                        # 大表格按行拆成多块
     assert body["inserted"] == body["chunks"] and body["skipped"] == 0
     pairs = await repository.list_chunk_pairs()
-    assert len({q for q, _ in pairs}) == 1           # 问法全是「猫爬架」
+    assert len({q for q, _ in pairs}) == 1           # 问法全是「用电信息采集终端」
     assert len(pairs) == body["chunks"]              # 但每块都留下了
 
 
@@ -114,22 +114,22 @@ async def test_vectorize_endpoint_uses_dualwrite(client, monkeypatch):
 
 async def test_search_strategy_whitelist(client):
     assert (await client.post("/api/kb/search", json={"q": " "})).status_code == 400
-    resp = await client.post("/api/kb/search", json={"q": "邮费是多少", "strategy": "玄学"})
+    resp = await client.post("/api/kb/search", json={"q": "违约金是多少", "strategy": "玄学"})
     assert resp.status_code == 400
 
 
 async def test_search_returns_hits(client, monkeypatch):
     async def fake(query, strategy="hybrid_rerank", top_k=None, **kw):
-        assert (query, strategy, top_k) == ("邮费是多少", "vector", 3)
-        return [{"id": 1, "question": "运费与包邮", "answer": "满 99 元包邮", "score": 0.83,
-                 "section_path": "会员权益 / 运费与包邮", "content_type": "policy",
-                 "category": "会员权益"}]
+        assert (query, strategy, top_k) == ("违约金是多少", "vector", 3)
+        return [{"id": 1, "question": "违约金与缴费", "answer": "满 99 元缴费", "score": 0.83,
+                 "section_path": "电价档位权益 / 违约金与缴费", "content_type": "policy",
+                 "category": "电价档位权益"}]
     monkeypatch.setattr("app.core.retrieval.search_knowledge", fake)
     resp = await client.post("/api/kb/search",
-                             json={"q": "邮费是多少", "strategy": "vector", "top_k": 3})
+                             json={"q": "违约金是多少", "strategy": "vector", "top_k": 3})
     assert resp.status_code == 200
     hits = resp.json()["hits"]
-    assert len(hits) == 1 and hits[0]["question"] == "运费与包邮"
+    assert len(hits) == 1 and hits[0]["question"] == "违约金与缴费"
 
 
 async def test_overview_survives_milvus_offline(client, monkeypatch):
@@ -163,7 +163,7 @@ async def test_挖出来的条目要人点采纳才进知识库(client, monkeypa
     kb-mine 自己不写库——模型归纳出来的问答对质量参差,得人过一眼。所以这条断言的是
     闸本身:待审时库里没有,采纳后才有。
     """
-    sid = await repository.insert_staging("mine-t", "conv:1", "运费怎么算", "满99包邮")
+    sid = await repository.insert_staging("mine-t", "conv:1", "违约金怎么算", "满99缴费")
     await repository.set_staging_status([sid], "kept")
     assert (await repository.knowledge_stats())["total"] == 0    # 待审阶段库里一条没有
 
@@ -176,7 +176,7 @@ async def test_挖出来的条目要人点采纳才进知识库(client, monkeypa
 async def test_同一条重复采纳会被挡掉(client, monkeypatch):
     """页面上手快点两下、或者拿已弃用的行来入库,都不该造出重复知识。"""
     monkeypatch.setattr(kb_api.dualwrite, "vectorize_pending", lambda: _noop())
-    sid = await repository.insert_staging("mine-t", "conv:1", "运费怎么算", "满99包邮")
+    sid = await repository.insert_staging("mine-t", "conv:1", "违约金怎么算", "满99缴费")
     await repository.set_staging_status([sid], "kept")
 
     assert (await client.post("/api/kb/staging/approve", json={"ids": [sid]})).status_code == 200

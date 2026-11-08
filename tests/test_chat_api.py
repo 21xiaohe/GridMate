@@ -33,10 +33,10 @@ def _fake_stream_turn(events: list[dict]):
 
 async def test_chat_tool_path_streams_badge_and_answer(monkeypatch):
     events = [
-        {"type": "tool", "name": "query_logistics"},
-        {"type": "delta", "text": "您的订单 "},
+        {"type": "tool", "name": "query_repair"},
+        {"type": "delta", "text": "您的工单 "},
         {"type": "delta", "text": "1001 "},
-        {"type": "delta", "text": "正在运输中。"},
+        {"type": "delta", "text": "正在抢修中。"},
         {"type": "done", "conversation_id": 7},
     ]
     monkeypatch.setattr(runtime, "stream_turn", _fake_stream_turn(events))
@@ -44,7 +44,7 @@ async def test_chat_tool_path_streams_badge_and_answer(monkeypatch):
     async with _client() as client:
         async with client.stream(
             "POST", "/api/chat",
-            json={"user_id": "u1", "message": "订单 1001 到哪了"},
+            json={"user_id": "u1", "message": "工单 1001 到哪了"},
         ) as resp:
             assert resp.status_code == 200
             assert resp.headers["content-type"].startswith("text/event-stream")
@@ -52,9 +52,9 @@ async def test_chat_tool_path_streams_badge_and_answer(monkeypatch):
 
     payloads = _data_payloads(lines)
     tools = [p for p in payloads if p.get("event") == "tool"]
-    assert tools and tools[0]["name"] == "query_logistics"     # 工具轨迹徽章帧
+    assert tools and tools[0]["name"] == "query_repair"     # 工具轨迹徽章帧
     deltas = "".join(p["delta"] for p in payloads if "delta" in p)
-    assert deltas == "您的订单 1001 正在运输中。"                 # 逐 token 流式最终答
+    assert deltas == "您的工单 1001 正在抢修中。"                 # 逐 token 流式最终答
     done = [p for p in payloads if p.get("event") == "done"]
     assert done and done[0]["conversation_id"] == 7
     assert "data: [DONE]" in lines
@@ -62,7 +62,7 @@ async def test_chat_tool_path_streams_badge_and_answer(monkeypatch):
 
 async def test_chat_no_tool_returns_answer(monkeypatch):
     events = [
-        {"type": "delta", "text": "你好,喵~"},
+        {"type": "delta", "text": "你好,再见~"},
         {"type": "done", "conversation_id": 3},
     ]
     monkeypatch.setattr(runtime, "stream_turn", _fake_stream_turn(events))
@@ -75,28 +75,28 @@ async def test_chat_no_tool_returns_answer(monkeypatch):
 
     payloads = _data_payloads(lines)
     assert [p for p in payloads if p.get("event") == "tool"] == []
-    assert "".join(p["delta"] for p in payloads if "delta" in p) == "你好,喵~"
+    assert "".join(p["delta"] for p in payloads if "delta" in p) == "你好,再见~"
     cid = next(p["conversation_id"] for p in payloads if p.get("event") == "done")
     assert cid == 3
 
 
 async def test_chat_stream_includes_citations(monkeypatch):
     events = [
-        {"type": "delta", "text": "根据知识库,退货需 7 天内。"},
-        {"type": "citations", "items": [{"chunk_id": 1, "title": "退货政策"}]},
+        {"type": "delta", "text": "根据知识库,退费需 7 天内。"},
+        {"type": "citations", "items": [{"chunk_id": 1, "title": "退费政策"}]},
         {"type": "done", "conversation_id": 4},
     ]
     monkeypatch.setattr(runtime, "stream_turn", _fake_stream_turn(events))
 
     async with _client() as client:
         async with client.stream(
-            "POST", "/api/chat", json={"user_id": "u1", "message": "怎么退货"},
+            "POST", "/api/chat", json={"user_id": "u1", "message": "怎么退费"},
         ) as resp:
             lines = await _collect_sse(resp)
 
     payloads = _data_payloads(lines)
     citations = [p for p in payloads if p.get("event") == "citations"]
-    assert citations and citations[0]["items"] == [{"chunk_id": 1, "title": "退货政策"}]
+    assert citations and citations[0]["items"] == [{"chunk_id": 1, "title": "退费政策"}]
 
 
 async def test_chat_stream_includes_actions(monkeypatch):

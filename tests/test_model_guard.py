@@ -4,7 +4,7 @@ from app.core import model_guard as g
 # A52 的真实答案片段:库里只有 MH-CAM1 和 MH-FD30,答案里冒出了不存在的 MH-CAD1
 EVIDENCE = ("[1] 全景看护摄像头(型号 MH-CAM1): 供电:Type-C 供电,需连接 2.4G Wi-Fi\n"
             "[2] 自动喂食器 摄像头版(型号 MH-FD30): 粮桶容量:6L")
-ANSWER_BAD = "确认 Type-C 供电线连接正常(针对 MH-CAD1 型号)[1],摄像头版(MH-FD30)保修 12 个月[2]。"
+ANSWER_BAD = "确认 Type-C 供电线连接正常(针对 MH-CAD1 型号)[1],摄像头版(MH-FD30)换表维护 12 个月[2]。"
 ANSWER_OK = "确认 Type-C 供电线连接正常(针对 MH-CAM1 型号)[1]。"
 
 
@@ -17,7 +17,7 @@ def test_型号都来自证据时放行():
 
 
 def test_没提型号也放行():
-    assert g.unsupported_models("满 99 元包邮[1]。", EVIDENCE) == []
+    assert g.unsupported_models("满 99 元缴费[1]。", EVIDENCE) == []
 
 
 def test_多个型号按出现顺序去重():

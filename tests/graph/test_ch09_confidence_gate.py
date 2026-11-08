@@ -32,7 +32,7 @@ def stub_selfcheck(monkeypatch):
     return set_result
 
 
-def _state(text="猫窝能水洗吗"):
+def _state(text="表箱能水洗吗"):
     from langchain_core.messages import HumanMessage
     return {"messages": [HumanMessage(text)], "conversation_id": 1}
 
@@ -77,7 +77,7 @@ async def test_fallback_reply_persists_source_and_snapshot(monkeypatch):
         return 1
     monkeypatch.setattr(nodes.repository, "insert_low_confidence", fake_insert)
     from langchain_core.messages import HumanMessage
-    state = {"messages": [HumanMessage("猫窝能水洗吗")], "conversation_id": 7,
+    state = {"messages": [HumanMessage("表箱能水洗吗")], "conversation_id": 7,
              "fallback_source": "self_check", "evidence_confidence": 0.41,
              "retrieved_snapshot": [{"question": "x", "answer": "y", "rerank_score": 0.4, "section_path": "s"}],
              "trace": {}}

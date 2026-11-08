@@ -9,11 +9,11 @@ from app.main import app
 
 def _fake_state_with_tool_trace():
     ai = AIMessage("", tool_calls=[
-        {"name": "query_logistics", "args": {"order_id": "1001"}, "id": "c1"}])
-    tm = ToolMessage(content='{"status":"运输中"}', tool_call_id="c1", name="query_logistics")
-    final_ai = AIMessage("订单 1001 正在运输中。")
+        {"name": "query_repair", "args": {"workorder_no": "1001"}, "id": "c1"}])
+    tm = ToolMessage(content='{"status":"现场处理中"}', tool_call_id="c1", name="query_repair")
+    final_ai = AIMessage("工单 1001 正在抢修中。")
     return {
-        "messages": [HumanMessage("订单 1001 到哪了"), ai, tm, final_ai],
+        "messages": [HumanMessage("工单 1001 到哪了"), ai, tm, final_ai],
         "conversation_id": 12,
     }
 
@@ -23,12 +23,12 @@ def test_agent_endpoint_returns_tool_trace(monkeypatch):
         return {"conversation_id": 12, "state": _fake_state_with_tool_trace()}
     monkeypatch.setattr(agent.runtime, "run_turn", fake_run_turn)
     client = TestClient(app)
-    r = client.post("/api/agent", json={"user_id": "u1", "message": "订单 1001 到哪了"})
+    r = client.post("/api/agent", json={"user_id": "u1", "message": "工单 1001 到哪了"})
     assert r.status_code == 200
     body = r.json()
     assert body["conversation_id"] == 12
-    assert body["answer"] == "订单 1001 正在运输中。"
-    assert body["tool_calls"][0]["name"] == "query_logistics"
+    assert body["answer"] == "工单 1001 正在抢修中。"
+    assert body["tool_calls"][0]["name"] == "query_repair"
     assert body["tool_results"][0]["ok"] is True
     assert body["suggested_actions"] == []
 

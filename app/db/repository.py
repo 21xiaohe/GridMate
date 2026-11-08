@@ -247,7 +247,7 @@ async def count_chunks_by_content_types(content_types) -> int:
 
 async def knowledge_stats() -> dict:
     """知识库盘点:总块数 + 双写状态分布 + 内容类型分布 + 关键条款数。
-    录入页的库存概览一次拿齐,不必让页面发四五个请求各问一个数。"""
+    录入页的备表概览一次拿齐,不必让页面发四五个请求各问一个数。"""
     async with db.async_session() as s:
         total = (await s.execute(select(func.count()).select_from(KnowledgeChunk))).scalar_one()
         by_status = {k: int(v) for k, v in (await s.execute(

@@ -36,7 +36,7 @@ def _user_text(state) -> str:
 
 def _history_text(state, max_turns: int = 6) -> str:
     """摘要行 + 滑窗内最近若干轮(不含本轮最后一条 human),供 coref/意图读上下文。
-    context:先按摘要边界切窗再取尾——跨滑窗的指代(「最开始那个订单」)靠摘要行兜住。"""
+    context:先按摘要边界切窗再取尾——跨滑窗的指代(「最开始那个工单」)靠摘要行兜住。"""
     msgs = memory.build_window(state.get("messages", []),
                                state.get("summary_upto_msg_id") or 0,
                                settings.context_window_max_tokens)
@@ -52,7 +52,7 @@ def _history_text(state, max_turns: int = 6) -> str:
     return f"{head}\n{body}".strip() if head else body
 
 
-# 4+ 位连续数字视作订单号;用 lookaround 而非 \b——CJK 与数字同属 \w,\b 在「订单1001」处不成立
+# 4+ 位连续数字视作工单号;用 lookaround 而非 \b——CJK 与数字同属 \w,\b 在「工单1001」处不成立
 _ORDER_RE = re.compile(r"(?<!\d)(\d{4,})(?!\d)")
 
 
@@ -61,30 +61,30 @@ def _extract_order_id(text: str) -> str | None:
     return m.group(1) if m else None
 
 
-async def fetch_order(state) -> dict:
-    """退款子流程第一步:抽订单号;缺了、或者报的不是自己的单,都 interrupt 弹订单选择器
-    等前端点选(resume 回填);拿到后 order_snapshot 取订单数据。
+async def fetch_workorder(state) -> dict:
+    """退费子流程第一步:抽工单号;缺了、或者报的不是自己的单,都 interrupt 弹工单选择器
+    等前端点选(resume 回填);拿到后 workorder_snapshot 取工单数据。
     interrupt 之前只做只读(resume 时本节点从头重跑)。
 
-    归属校验放在这里而不是只放在工具里:退款子流程是确定性节点,不经 agent_tools,
+    归属校验放在这里而不是只放在工具里:退费子流程是确定性节点,不经 agent_tools,
     工具那道校验够不着。用户随口报的号、resume 端点回传的号,都得过同一道判断。"""
     uid = state.get("user_id", "")
-    oid = state.get("order_id") or _extract_order_id(
+    oid = state.get("workorder_no") or _extract_order_id(
         state.get("resolved_query") or _user_text(state))
-    while not business.owns_order(uid, str(oid or "")):
-        orders = business.list_user_orders(uid)                        # 只读,可安全重跑
-        oid = interrupt({"type": "select_order", "orders": orders})    # resume 回填订单号
-    data = business.order_snapshot(oid)
-    return {"order_id": oid, "order_data": data,
-            "trace": {"fetch_order": {"order_id": oid}}}
+    while not business.owns_workorder(uid, str(oid or "")):
+        orders = business.list_user_workorders(uid)                        # 只读,可安全重跑
+        oid = interrupt({"type": "select_workorder", "workorders": orders})    # resume 回填工单号
+    data = business.workorder_snapshot(oid)
+    return {"workorder_no": oid, "workorder_data": data,
+            "trace": {"fetch_workorder": {"workorder_no": oid}}}
 
 
 async def retrieve_policy(state) -> dict:
-    """退款子流程强制检索政策:Query 扩写 3 条 → 多 query 各检索一次 → 按 chunk id 去重合并
+    """退费子流程强制检索政策:Query 扩写 3 条 → 多 query 各检索一次 → 按 chunk id 去重合并
     (保留每 id 最高分)→ 按分降序拼编号证据。产出注入 main_agent 作「能不能退」的判据(README L194:
     不让模型凭记忆答)。库里知识一份,扩写只在检索侧现查现用。"""
     base = state.get("resolved_query") or _user_text(state)
-    od = state.get("order_data") or {}
+    od = state.get("workorder_data") or {}
     seed = f"{base} {od.get('status', '')}".strip()
     queries = await query_understanding.expand_queries(seed)
 
@@ -164,7 +164,7 @@ async def resolve_reference(state) -> dict:
 
 async def classify_intent(state) -> dict:
     """意图四件套:八类 + confidence + 「其他」兜底。吃 resolved_query(空则回落原话)+ 最近历史
-    判当前意图(应对物流→退款→物流漂移)。把归属出口 route 落进 State(供 _agent_messages 判注入、
+    判当前意图(应对报修→退费→报修漂移)。把归属出口 route 落进 State(供 _agent_messages 判注入、
     log 留痕;route_by_intent 条件边按同一 INTENT_TO_ROUTE 分流,单一来源不漂移)。"""
     query = state.get("resolved_query") or _user_text(state)
     r = await intent_mod.classify(query, _history_text(state))
@@ -226,15 +226,15 @@ async def confidence_check(state) -> dict:
 
 _KNOWLEDGE_EVIDENCE_HINT = (
     "\n\n## 已检索到的知识证据(请据此作答,每个关键结论后标注来源编号如[1];"
-    "证据已给,不要再调用 query_faq;仍可按需调用订单/物流等工具)\n"
+    "证据已给,不要再调用 query_faq;仍可按需调用工单/报修等工具)\n"
     "型号编号逐字复制证据里的写法,证据里没有的型号不要写;带条件的结论要连条件一起说。\n"
 )
 
 
 def _turn_context(state) -> str:
-    """本轮才有的材料:检索证据 + 退款路的订单数据。没有就返回空串。
+    """本轮才有的材料:检索证据 + 退费路的工单数据。没有就返回空串。
 
-    顺序不能反:REFUND_JUDGE_HINT 的措辞是「下面给出该订单数据与检索到的退换货政策证据」,
+    顺序不能反:REFUND_JUDGE_HINT 的措辞是「下面给出该工单数据与检索到的退费政策证据」,
     它假设证据已在前文给过。"""
     parts = []
     ss = memory.summary_system(state.get("summary"))
@@ -243,7 +243,7 @@ def _turn_context(state) -> str:
     if state.get("evidence"):
         parts.append(_KNOWLEDGE_EVIDENCE_HINT + state["evidence"])
     if state.get("route") == "refund_flow":
-        parts.append(REFUND_JUDGE_HINT + json.dumps(state.get("order_data", {}), ensure_ascii=False))
+        parts.append(REFUND_JUDGE_HINT + json.dumps(state.get("workorder_data", {}), ensure_ascii=False))
     return "".join(parts)     # 三段文本逐字沿用原来的常量,一个字都不改:这次只挪位置,
                               # 措辞一起动的话出了问题分不清是缓存改动还是提示词改动
 
@@ -332,9 +332,9 @@ async def main_agent(state, config=None) -> dict:
 
 async def agent_tools(state) -> dict:
     """ReAct 行动步(interrupt):一切工具经统一执行引擎。create_ticket(唯一写操作)走确认流——
-    参数齐则节点顶部 interrupt 推工单预览(interrupt 前只做纯计算,resume 重跑安全,照 fetch_order
+    参数齐则节点顶部 interrupt 推工单预览(interrupt 前只做纯计算,resume 重跑安全,照 fetch_workorder
     范式);参数缺则交引擎按「校验拦下」回灌,模型自然向用户追问,不弹卡。
-    submit_refund 仍拦成前端退款表单(ticket 语义不变)。"""
+    submit_refund 仍拦成前端退费表单(ticket 语义不变)。"""
     last = state["messages"][-1]
     cid = state.get("conversation_id", 0)
     uid = state.get("user_id", "")
@@ -353,27 +353,27 @@ async def agent_tools(state) -> dict:
 
     tool_msgs = []
     actions = list(state.get("suggested_actions", []))
-    not_owned = False        # 这一轮有没有人报了不属于自己的订单号
+    not_owned = False        # 这一轮有没有人报了不属于自己的工单号
     for tc in last.tool_calls:
         if tc["name"] == "submit_refund":
             # submit_refund 在这里就被拦成前端表单、不进执行引擎,所以工具内那道归属校验
-            # 对它不生效,得在拦截之前判一次。不然退款入口就成了绕过校验的后门。
-            if not business.owns_order(uid, str(tc["args"].get("order_id") or "")):
+            # 对它不生效,得在拦截之前判一次。不然退费入口就成了绕过校验的后门。
+            if not business.owns_workorder(uid, str(tc["args"].get("workorder_no") or "")):
                 not_owned = True
                 tool_msgs.append(ToolMessage(
-                    content="没有找到这位用户的这笔订单,本次不发起退款。请如实告知没查到,"
-                            "并让用户从下面列出的订单里选一笔,不要再调用任何工具。",
+                    content="没有找到这位用户的这笔工单,本次不发起退费。请如实告知没查到,"
+                            "并让用户从下面列出的工单里选一笔,不要再调用任何工具。",
                     tool_call_id=tc["id"], name="submit_refund", status="error"))
                 continue
             actions.append({"type": "refund_form",
-                            "draft": {"order_id": tc["args"].get("order_id", ""),
+                            "draft": {"workorder_no": tc["args"].get("workorder_no", ""),
                                       "reason": tc["args"].get("reason")}})
             tool_msgs.append(ToolMessage(
-                content="已把『提交退款工单』选项交给用户确认。请用一句话说明这一单可以退款并停止,不要再调用任何工具。",
+                content="已把『提交退费工单』选项交给用户确认。请用一句话说明这一单可以退费并停止,不要再调用任何工具。",
                 tool_call_id=tc["id"], name="submit_refund"))
         elif tc["name"] == "create_ticket" and decision is not None:
             if tc is ticket_calls[0]:
-                # resume 值形状守卫:同一 resume 端点服务两种中断,错配(如传了 order_id 字符串)
+                # resume 值形状守卫:同一 resume 端点服务两种中断,错配(如传了 workorder_no 字符串)
                 # 一律按未确认处理——宁可让用户重来,不让节点炸
                 if isinstance(decision, dict) and decision.get("confirmed"):
                     run = await engine.execute_tool_call(tc, cid, specs, confirmed=True,
@@ -390,13 +390,13 @@ async def agent_tools(state) -> dict:
         else:
             # 含参数缺失的 create_ticket(decision is None):引擎校验拦下,错误说明回灌
             run = await engine.execute_tool_call(tc, cid, specs, user_id=uid)
-            if tc["name"] == "query_order" and not business.owns_order(
-                    uid, str((tc.get("args") or {}).get("order_id") or "")):
+            if tc["name"] == "query_workorder" and not business.owns_workorder(
+                    uid, str((tc.get("args") or {}).get("workorder_no") or "")):
                 not_owned = True
             tool_msgs.append(run.tool_message)
     # 拒绝之后给一条出路:把他名下的单亮出来点选,否则他既查不到,也不知道自己的单号是多少
     if not_owned:
-        actions.append({"type": "select_order", "orders": business.list_user_orders(uid)})
+        actions.append({"type": "select_workorder", "workorders": business.list_user_workorders(uid)})
     out = {"messages": tool_msgs}
     if actions:
         out["suggested_actions"] = actions

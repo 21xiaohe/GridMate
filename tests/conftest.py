@@ -10,15 +10,15 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from app.config import settings
 
 _DDL_FILES = [
-    pathlib.Path(__file__).resolve().parent.parent / "sql" / "tools-ddl.sql",
-    pathlib.Path(__file__).resolve().parent.parent / "sql" / "rag-ddl.sql",
+    pathlib.Path(__file__).resolve().parent.parent / "sql" / "01-tools-ddl.sql",
+    pathlib.Path(__file__).resolve().parent.parent / "sql" / "03-rag-ddl.sql",
     # 挖知识加人工闸:给 qa_extraction_staging 的 status 补 approved/rejected 两个终态
-    pathlib.Path(__file__).resolve().parent.parent / "sql" / "rag-staging-review.sql",
-    pathlib.Path(__file__).resolve().parent.parent / "sql" / "retrieval-ddl.sql",
-    pathlib.Path(__file__).resolve().parent.parent / "sql" / "context-ddl.sql",
-    pathlib.Path(__file__).resolve().parent.parent / "sql" / "interrupt-ddl.sql",
-    pathlib.Path(__file__).resolve().parent.parent / "sql" / "flywheel-ddl.sql",
-    pathlib.Path(__file__).resolve().parent.parent / "sql" / "classifier-ddl.sql",
+    pathlib.Path(__file__).resolve().parent.parent / "sql" / "11-rag-staging-review.sql",
+    pathlib.Path(__file__).resolve().parent.parent / "sql" / "05-retrieval-ddl.sql",
+    pathlib.Path(__file__).resolve().parent.parent / "sql" / "07-context-ddl.sql",
+    pathlib.Path(__file__).resolve().parent.parent / "sql" / "08-interrupt-ddl.sql",
+    pathlib.Path(__file__).resolve().parent.parent / "sql" / "09-flywheel-ddl.sql",
+    pathlib.Path(__file__).resolve().parent.parent / "sql" / "10-classifier-ddl.sql",
 ]
 # 删除顺序:先子表后父表;knowledge_chunks 自引用 FK 靠 FOREIGN_KEY_CHECKS=0 兜
 # flywheel:low_confidence_questions 有 FK 指向 review_queue,排它前面
@@ -76,7 +76,7 @@ def _no_langfuse(monkeypatch):
 
 @pytest_asyncio.fixture()
 async def _test_engine():
-    """function 级:确保测试库存在 + 重建 tools+rag 共 6 表。engine 在当前 event loop 创建/销毁,避免跨 loop。"""
+    """function 级:确保测试备表在 + 重建 tools+rag 共 6 表。engine 在当前 event loop 创建/销毁,避免跨 loop。"""
     admin = create_async_engine(_SERVER_URL, isolation_level="AUTOCOMMIT")
     async with admin.connect() as conn:
         await conn.execute(

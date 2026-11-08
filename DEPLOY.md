@@ -1,4 +1,4 @@
-# PawServe 部署任务书
+# GridMate 部署任务书
 
 这份文件是写给 AI 编程助手执行的。把它交给 Claude Code、Cursor 之类的工具，说一句
 「按 DEPLOY.md 把项目部署起来」就行，它会自己走完下面的步骤。
@@ -9,10 +9,10 @@
 
 ## 目标
 
-在本机把 PawServe 跑起来，最终验收标准只有一条：
+在本机把 GridMate 跑起来，最终验收标准只有一条：
 
-**浏览器打开 <http://localhost:8000>，问「订单 1001 的物流到哪了」，能看到回答，
-并且回答上方出现两个工具调用标记（`query_order` 和 `query_logistics`）。**
+**浏览器打开 <http://localhost:8000>，问「工单 1001 的报修到哪了」，能看到回答，
+并且回答上方出现两个工具调用标记（`query_workorder` 和 `query_repair`）。**
 
 只出文字、不出工具调用标记，不算完成。
 
@@ -105,13 +105,13 @@ make seed        # FAQ(query_faq 的数据源)
 make seed-conv   # 历史会话(rag 挖知识用)
 ```
 
-订单和物流不在这里，它们是 `app/tools/business.py` 里按 user_id 稳定生成的模拟数据，
+工单和报修不在这里，它们是 `app/tools/business.py` 里按 user_id 稳定生成的模拟数据，
 不落库，任何账号名下都有 1001 和 2002 两笔演示单。数据库里没有 orders 表是正常的。
 
 第 3 步首启时这两个脚本已经自动跑过一遍了，这里再跑是为了重复部署或数据被改乱时重灌。
 种子脚本幂等，重复执行不会出问题。
 
-**验收**：`docker exec -i pawserve-mysql mysql -uroot -proot pawserve -e "SELECT COUNT(*) FROM faq;"`
+**验收**：`docker exec -i gridmate-mysql mysql -uroot -proot gridmate -e "SELECT COUNT(*) FROM faq;"`
 返回的数字大于 0。
 
 ## 第 5 步 建知识库
@@ -143,13 +143,13 @@ make dev
 ## 第 7 步 验收
 
 ```bash
-printf '{"user_id":"u1","message":"订单 1001 的物流到哪了"}' > /tmp/q.json
+printf '{"user_id":"u1","message":"工单 1001 的报修到哪了"}' > /tmp/q.json
 curl -s --max-time 90 http://localhost:8000/api/agent \
      -H 'Content-Type: application/json' --data-binary @/tmp/q.json
 ```
 
-**验收**：返回的 JSON 里 `tool_calls` 数组包含 `query_order` 和 `query_logistics` 两项，
-`answer` 里有物流状态。
+**验收**：返回的 JSON 里 `tool_calls` 数组包含 `query_workorder` 和 `query_repair` 两项，
+`answer` 里有报修状态。
 
 只有 `answer` 没有 `tool_calls`，说明模型没有触发工具调用，通常是 `CHAT_MODEL` 写的
 名字上游不认，或者中转端点不校验模型名、拿了别的模型应答。回到第 2 步核对。

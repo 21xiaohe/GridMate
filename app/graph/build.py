@@ -17,7 +17,7 @@ def _builder() -> StateGraph:
     b.add_node("complaint_reply", nodes.complaint_reply)
     b.add_node("script_reply", nodes.script_reply)
     b.add_node("fallback_reply", nodes.fallback_reply)
-    b.add_node("fetch_order", nodes.fetch_order)
+    b.add_node("fetch_workorder", nodes.fetch_workorder)
     b.add_node("retrieve_policy", nodes.retrieve_policy)
     b.add_node("log", nodes.log_node)
 
@@ -28,11 +28,11 @@ def _builder() -> StateGraph:
         "escalate": "complaint_reply",
         "fallback_script": "script_reply",
         "knowledge": "retrieve_knowledge",
-        "refund_flow": "fetch_order",
+        "refund_flow": "fetch_workorder",
         "business": "main_agent",
     })
-    # 退款子流程确定性链:取单 → 检索政策 → 交主力 Agent 判能不能退
-    b.add_edge("fetch_order", "retrieve_policy")
+    # 退费子流程确定性链:取单 → 检索政策 → 交主力 Agent 判能不能退
+    b.add_edge("fetch_workorder", "retrieve_policy")
     b.add_edge("retrieve_policy", "main_agent")
     # 知识路:检索 → 生成前证据闸
     b.add_edge("retrieve_knowledge", "confidence_check")

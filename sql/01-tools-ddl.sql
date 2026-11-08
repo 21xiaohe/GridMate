@@ -1,7 +1,7 @@
 -- =============================================================
 -- tools · Function Calling 工具链 · 建表 DDL
 -- 本章新建:faq / conversations / messages / tickets 四张表
--- 商品、订单、物流走工具内 mock,不建表
+-- 业务、工单、报修走工具内 mock,不建表
 -- 全库统一 ENGINE=InnoDB、CHARSET=utf8mb4
 -- 建表顺序:先 conversations,再依赖它的 messages / tickets
 -- =============================================================
@@ -52,7 +52,7 @@ CREATE TABLE tickets (
   ticket_no       VARCHAR(32)     NOT NULL                COMMENT '工单号,如 T20260701008',
   conversation_id BIGINT UNSIGNED NOT NULL                COMMENT '关联会话,可倒查当时聊了什么',
   description     TEXT            NOT NULL                COMMENT '问题描述',
-  ticket_type     ENUM('售后','投诉','咨询') NOT NULL     COMMENT '工单类型',
+  ticket_type     ENUM('用电业务','投诉','咨询') NOT NULL     COMMENT '工单类型',
   status          ENUM('待处理','已处理') NOT NULL DEFAULT '待处理' COMMENT '处理状态',
   created_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (ticket_no),

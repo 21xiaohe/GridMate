@@ -1,10 +1,10 @@
-# PawServe · 电商售后智能客服 Agent 系统
+# GridMate · 电力营销服务用电业务智能客服 Agent 系统
 
-> 确定性 Workflow + Agent 混合架构的电商售后客服：RAG 混合检索问答、九类意图分流、工具调用查真数据、证据不足即拒答转人工，配套检索评估体系与数据飞轮。
+> 确定性 Workflow + Agent 混合架构的电力营销服务用电业务客服：RAG 混合检索问答、九类意图分流、工具调用查真数据、证据不足即拒答转人工，配套检索评估体系与数据飞轮。
 
 ## 解决什么问题
 
-电商售后客服的三类高频诉求：**查得到**（订单/物流/商品要查真实业务库，模型不能编）、**答得准**（政策问题要依据知识库、带来源编号、可追溯）、**守得住**（答不了的不硬答，转人工/建工单）。
+电力营销服务用电业务客服的三类高频诉求：**查得到**（工单/报修/业务要查真实业务库，模型不能编）、**答得准**（政策问题要依据知识库、带来源编号、可追溯）、**守得住**（答不了的不硬答，转人工/建工单）。
 
 ## 架构一览
 
@@ -17,9 +17,9 @@
         ┌───────────────┬───────────────┼────────────────┐
         ▼               ▼               ▼                ▼
    RAG 检索问答      工具调用链       闲聊/兜底         建工单(人工)
-   双路召回           query_order
-   (向量+BM25)       query_logistics
-   RRF 融合           query_product
+   双路召回           query_workorder
+   (向量+BM25)       query_repair
+   RRF 融合           query_meter
    精排重排           create_ticket
         │               │
         ▼               ▼
@@ -58,13 +58,13 @@ make kb-build kb-vectorize
 # 4. 起服务(含两台 MCP Server)
 make dev
 
-# 5. 浏览器打开 http://localhost:8000,问「订单 1001 的物流到哪了」
-#    验收:回答上方出现 query_order + query_logistics 两个工具调用标记
+# 5. 浏览器打开 http://localhost:8000,问「工单 1001 的报修到哪了」
+#    验收:回答上方出现 query_workorder + query_repair 两个工具调用标记
 ```
 
 ## 评估体系
 
-检索质量不靠感觉，靠评估集（`data/eval/`，300 题五桶：单文档/关键词改写/跨文档/不可答/多轮）：
+检索质量不靠感觉，靠评估集（`tests/data/eval_hybrid_strategies.jsonl`，300 题五桶：政策/型号/口语/跨文档/不可答，由 `scripts/build_evalset.py` 从知识库小节生成）：
 
 ```bash
 # 四策略(向量/BM25/混合/混合+精排) × 分桶 Recall@5 / MRR 对比
@@ -88,11 +88,11 @@ app/
   core/       # 核心组件:llm 模型工厂 / prompts / confidence 置信度 /
               # intent 意图 / rerank 精排 / memory 上下文 / flywheel 数据飞轮
   graph/      # LangGraph 工作流编排
-  tools/      # 业务工具(query_order / query_logistics / query_faq / create_ticket)
+  tools/      # 业务工具(query_workorder / query_repair / query_faq / create_ticket)
   db/         # SQLAlchemy 模型
 scripts/      # 评估 / 评测 / 数据流水线 / classifier 主题分类微调
 sql/          # 分模块 DDL 与种子数据
-mcp_servers/  # MCP 工具服务(物流轨迹等外部能力)
+mcp_servers/  # MCP 工具服务(抢修进度等外部能力)
 tests/        # pytest
 ```
 

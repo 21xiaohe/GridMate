@@ -41,6 +41,6 @@ if [ "$MILVUS_READY" -ne 1 ]; then
 fi
 echo "Milvus OK"
 
-make mcp-up   # interrupt: 物流/售后 MCP Server(独立进程 :8101/:8102)
+make mcp-up   # interrupt: 报修/用电业务 MCP Server(独立进程 :8101/:8102)
 
 uv run uvicorn app.main:app --port 8000

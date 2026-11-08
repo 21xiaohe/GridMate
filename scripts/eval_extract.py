@@ -1,4 +1,4 @@
-"""对 /api/extract 跑标注样例,核对 order_id 与 request_type(expected_solution 人工目检)。"""
+"""对 /api/extract 跑标注样例,核对 workorder_no 与 request_type(expected_solution 人工目检)。"""
 import json
 import pathlib
 import sys
@@ -17,12 +17,12 @@ def main() -> int:
         r.raise_for_status()
         got = r.json()
         exp = s["expected"]
-        ok = got["order_id"] == exp["order_id"] and got["request_type"] == exp["request_type"]
+        ok = got["workorder_no"] == exp["workorder_no"] and got["request_type"] == exp["request_type"]
         status = "PASS" if ok else "FAIL"
         failures += not ok
         print(f"[{status}] #{i} {s['text'][:24]}...")
-        print(f"       期望 order_id={exp['order_id']} type={exp['request_type']}")
-        print(f"       实际 order_id={got['order_id']} type={got['request_type']} 方案={got['expected_solution']}")
+        print(f"       期望 workorder_no={exp['workorder_no']} type={exp['request_type']}")
+        print(f"       实际 workorder_no={got['workorder_no']} type={got['request_type']} 方案={got['expected_solution']}")
     print(f"\n{len(samples) - failures}/{len(samples)} 通过")
     return 1 if failures else 0
 

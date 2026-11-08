@@ -7,7 +7,7 @@ from app.kb import chunking, documents
 from app.kb.sources import KB_DIR, SOURCE_TYPES as DOCS
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-SEED_SQL = ROOT / "sql" / "rag-seed.sql"
+SEED_SQL = ROOT / "sql" / "04-rag-seed.sql"
 
 
 def _preview(text: str, n: int = 46) -> str:
@@ -24,8 +24,8 @@ def main() -> None:
         print(f"  data/kb/{fname:<24} [{ctype:<6}] {len(raw):>4} 字符 / {raw.count(chr(10)) + 1} 行")
     print("历史会话(挖知识 job 的【输入】,抽 QA → knowledge_chunks):")
     print(f"  {SEED_SQL.relative_to(ROOT)} → seed-u1/u2 共 2 会话、4 消息:")
-    print("    · u1「你们发货一般多久啊」/「现货…48 小时内发货」 → 可抽:发货时效")
-    print("    · u2「满多少包邮」/「满 99 元包邮,未满 10 元运费」 → 可抽:运费/包邮")
+    print("    · u1「你们装表一般多久啊」/「现货…48 小时内装表」 → 可抽:装表时效")
+    print("    · u2「满多少缴费」/「满 99 元缴费,未满 10 元违约金」 → 可抽:违约金/缴费")
     print("  ⚠ 挖掘要调 LLM(glm-5.2),不属于本地 dry-run;抽取结果见 make eval-mining / make kb-mine")
 
     print("\n=== 切块预览(dry-run,不写库)===")
@@ -57,7 +57,7 @@ def main() -> None:
                     table_notes.append(f"{fname}「{path.split(' / ')[-1]}」块{seq} 复制表头: {header.strip()}")
     print("\n=== 汇总 ===")
     print(f"总块数 {sum(tally.values())};类型分布 " + " ".join(f"{k}={v}" for k, v in tally.items()))
-    print(f"关键条款(is_key_clause=1)共 {key_total} 块(命中 运费/邮费/退款/保修 等词)")
+    print(f"关键条款(is_key_clause=1)共 {key_total} 块(命中 违约金/违约金/退费/换表维护 等词)")
     if table_notes:
         print("表格按行拆(表头复制)已触发:")
         for n in table_notes:

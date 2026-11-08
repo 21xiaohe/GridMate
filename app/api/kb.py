@@ -110,7 +110,7 @@ def _sources() -> list[dict]:
 
 @router.get("/overview")
 async def overview() -> dict:
-    """录入页总览:库存 + 双写一致 + 暂存表 + 材料清单 + 作业状态。"""
+    """录入页总览:备表 + 双写一致 + 暂存表 + 材料清单 + 作业状态。"""
     milvus = await milvus_state()
     try:
         stats = await repository.knowledge_stats()
@@ -255,7 +255,7 @@ class SearchIn(BaseModel):
 @router.post("/search")
 async def search(body: SearchIn) -> dict:
     """检索自测:换个说法问一句,看召回的是不是该召回的那块。
-    「邮费是多少」召回运费说明,靠的是语义相近而不是词面命中——这一条在页面上现场看得见。"""
+    「违约金是多少」召回违约金说明,靠的是语义相近而不是词面命中——这一条在页面上现场看得见。"""
     q = body.q.strip()
     if not q:
         raise HTTPException(status_code=400, detail="问一句话再检索")
@@ -296,7 +296,7 @@ async def staging_approve(body: StagingReviewIn) -> dict:
     """人工采纳:选中的暂存行写进 knowledge_chunks 并向量化,成功才置 approved。
 
     这是挖知识唯一的入库口。kb-mine 自己不写库——模型从聊天记录里归纳出来的问答对,
-    质量参差(只对单笔订单成立、夹带订单号、把「稍等我看看」当答案),得人过一眼。
+    质量参差(只对单笔工单成立、夹带工单号、把「稍等我看看」当答案),得人过一眼。
 
     只认 status='kept' 的行:重复点、或者拿已弃用的行来入库,都在这一步被挡掉。
     向量化失败要把刚插入的 pending 行删掉再报错,不然重试会造出重复知识(同 review.py)。"""

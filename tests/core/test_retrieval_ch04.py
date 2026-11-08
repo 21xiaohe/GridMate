@@ -18,10 +18,10 @@ async def test_strategy_vector(monkeypatch):
     def fake_dense(client, vec, top_k, category=None, collection="knowledge"):
         called["dense"] = True
         return [{"id": 1, "score": 0.9, "question": "q", "answer": "a",
-                 "section_path": "p", "content_type": "faq", "category": "运费"}]
+                 "section_path": "p", "content_type": "faq", "category": "违约金"}]
     monkeypatch.setattr("app.kb.milvus_client.dense_search", fake_dense)
     monkeypatch.setattr("app.kb.milvus_client.ensure_collection", lambda *a, **k: None)
-    out = await retrieval.search_knowledge("运费", strategy="vector", client=object())
+    out = await retrieval.search_knowledge("违约金", strategy="vector", client=object())
     assert called.get("dense") and out[0]["id"] == 1
 
 
@@ -32,10 +32,10 @@ async def test_strategy_hybrid_rerank(monkeypatch):
     monkeypatch.setattr("app.kb.milvus_client.ensure_collection", lambda *a, **k: None)
     def fake_hybrid(client, vec, text, top_k, recall=50, category=None, collection="knowledge"):
         return [
-            {"id": 1, "score": 0.5, "question": "运费", "answer": "满99包邮",
-             "section_path": "p1", "content_type": "faq", "category": "运费"},
+            {"id": 1, "score": 0.5, "question": "违约金", "answer": "满99缴费",
+             "section_path": "p1", "content_type": "faq", "category": "违约金"},
             {"id": 2, "score": 0.4, "question": "型号", "answer": "Pro自动清理",
-             "section_path": "p2", "content_type": "manual", "category": "商品"},
+             "section_path": "p2", "content_type": "manual", "category": "业务"},
         ]
     monkeypatch.setattr("app.kb.milvus_client.hybrid_search", fake_hybrid)
     async def fake_rerank(q, docs, top_n=None):

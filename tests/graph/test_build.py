@@ -6,7 +6,7 @@ def test_graph_has_all_nodes():
     names = set(g.get_graph().nodes)
     for n in ["resolve_reference", "classify_intent", "retrieve_knowledge", "confidence_check",
               "main_agent", "agent_tools", "complaint_reply", "script_reply",
-              "fallback_reply", "fetch_order", "retrieve_policy", "log"]:
+              "fallback_reply", "fetch_workorder", "retrieve_policy", "log"]:
         assert n in names, f"缺节点 {n}"
     assert "chitchat_reply" not in names, "chitchat_reply 应已被 script_reply 取代"
 

@@ -1,14 +1,14 @@
 services:
   mysql:
     image: mysql:8   # 8.4 系;dev 数据卷自 tools 起就是 8.4 的数据文件,钉 8.0 会拒绝降级启动
-    container_name: pawserve-mysql
+    container_name: gridmate-mysql
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: pawserve
+      MYSQL_DATABASE: gridmate
     ports:
       - "3307:3306"   # 本机 3306 被已有 MySQL 服务占用，宿主机侧改用 3307
     volumes:
-      - pawserve-mysql-data:/var/lib/mysql
+      - gridmate-mysql-data:/var/lib/mysql
       - ./sql:/docker-entrypoint-initdb.d:ro   # 首启按文件名序执行 tools-ddl.sql → tools-seed.sql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
@@ -20,7 +20,7 @@ services:
   # 轻量部署:内嵌 etcd + 本地存储,单容器即可跑(不依赖外部 etcd/minio)
   milvus-standalone:
     image: milvusdb/milvus:v2.6.22
-    container_name: pawserve-milvus
+    container_name: gridmate-milvus
     command: ["milvus", "run", "standalone"]
     environment:
       # 轻量部署（2026-10-27）：minio 镜像被官方锁死拉不到，改用官方 standalone_embed 模式——
@@ -31,7 +31,7 @@ services:
       COMMON_STORAGETYPE: local
       DEPLOY_MODE: STANDALONE
     volumes:
-      - pawserve-milvus-data:/var/lib/milvus
+      - gridmate-milvus-data:/var/lib/milvus
       - ./embedEtcd.yaml:/milvus/configs/embedEtcd.yaml:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
@@ -44,5 +44,5 @@ services:
       - "9091:9091"
 
 volumes:
-  pawserve-mysql-data:
-  pawserve-milvus-data:
+  gridmate-mysql-data:
+  gridmate-milvus-data:

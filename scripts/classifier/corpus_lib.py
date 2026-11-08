@@ -5,13 +5,13 @@ import re
 from app.core.taxonomy import LABEL2ID
 
 _PHONE = re.compile(r"(?<!\d)1[3-9]\d{9}(?!\d)")   # 前后不能还是数字:防止咬掉长单号的子串
-_LONG_DIGITS = re.compile(r"\d{10,}")            # 订单号/运单号一类长数字串
+_LONG_DIGITS = re.compile(r"\d{10,}")            # 工单号/运单号一类长数字串
 _WX_QQ = re.compile(r"(微信|weixin|wx|QQ|qq)[号:: ]*[A-Za-z0-9_-]{5,}\s?")
 
 
 def desensitize(text: str) -> str:
     """脱敏:手机号 → [手机号],长数字单号 → [单号],微信/QQ 号 → 前缀+[账号]。
-    商品型号(如 MH-LP100,字母开头短串)不匹配上述模式,不受影响。"""
+    业务型号(如 MH-LP100,字母开头短串)不匹配上述模式,不受影响。"""
     text = _PHONE.sub("[手机号]", text)
     text = _LONG_DIGITS.sub("[单号]", text)
     text = _WX_QQ.sub(lambda m: m.group(1) + "[账号]", text)

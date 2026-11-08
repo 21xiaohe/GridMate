@@ -1,5 +1,5 @@
 """祛魅:不用任何框架,手写最裸的 Agent 循环——看清它就是个带工具清单的 for 循环。
-用法:.venv/bin/python -m scripts.bare_agent_loop "订单1001的物流到哪了"
+用法:.venv/bin/python -m scripts.bare_agent_loop "工单1001的报修到哪了"
 """
 import asyncio
 import sys
@@ -30,7 +30,7 @@ async def run_agent(query: str, max_turns: int = 6):
 
 
 async def main():
-    query = sys.argv[1] if len(sys.argv) > 1 else "订单1001的物流到哪了"
+    query = sys.argv[1] if len(sys.argv) > 1 else "工单1001的报修到哪了"
     print("问题:", query)
     print("答复:", await run_agent(query))
 

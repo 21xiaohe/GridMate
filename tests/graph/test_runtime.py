@@ -24,7 +24,7 @@ def test_graph_input_resets_per_turn_output_channels():
     assert inp["messages"][0].id == "db-1"                 # context:用户消息带 DB 锚点
     assert inp["summary"] == "" and inp["summary_upto_msg_id"] == 0  # context:摘要两字段每轮刷新
     assert inp["resolved_query"] == "" and inp["intent_confidence"] == 0.0
-    assert inp["order_id"] == "" and inp["order_data"] == {}
+    assert inp["workorder_no"] == "" and inp["workorder_data"] == {}
     # trace 是 merge-reducer 通道,塞 {} 会被合并(merge(旧,{})=旧)清不掉;
     # 传 None 作重置哨兵,经 merge_dict 清零本轮 trace(否则上一轮 retrieve_policy 等条件键残留)。
     assert inp["trace"] is None
@@ -96,24 +96,24 @@ async def test_stream_turn_maps_events(monkeypatch, no_summary_task):
         async def astream(self, inp, config, stream_mode=None):
             # messages 模式:main_agent 的 token
             yield ("messages", (AIMessage("已"), {"langgraph_node": "main_agent"}))
-            yield ("messages", (AIMessage("发货"), {"langgraph_node": "main_agent"}))
+            yield ("messages", (AIMessage("装表"), {"langgraph_node": "main_agent"}))
             # messages 模式:非答复节点 token 应被过滤
-            yield ("messages", (AIMessage("订单"), {"langgraph_node": "classify_intent"}))
+            yield ("messages", (AIMessage("工单"), {"langgraph_node": "classify_intent"}))
             # updates 模式:工具帧 + citations + actions
             yield ("updates", {"agent_tools": {"messages": [
-                ToolMessage(content="{}", tool_call_id="1", name="query_logistics")]}})
+                ToolMessage(content="{}", tool_call_id="1", name="query_repair")]}})
             yield ("updates", {"retrieve_knowledge": {"citations": [{"n": 1}]}})
             yield ("updates", {"complaint_reply": {"answer": "抱歉",
                     "suggested_actions": [{"type": "transfer_human"}]}})
 
     monkeypatch.setattr(runtime, "get_graph", lambda: FakeGraph())
-    events = [e async for e in runtime.stream_turn("u1", "订单1001物流", None)]
+    events = [e async for e in runtime.stream_turn("u1", "工单1001报修", None)]
     kinds = [e["type"] for e in events]
     deltas = [e["text"] for e in events if e["type"] == "delta"]
     tools = [e["name"] for e in events if e["type"] == "tool"]
-    assert "已" in deltas and "发货" in deltas
-    assert "订单" not in deltas  # 非答复节点被过滤
-    assert tools == ["query_logistics"]
+    assert "已" in deltas and "装表" in deltas
+    assert "工单" not in deltas  # 非答复节点被过滤
+    assert tools == ["query_repair"]
     assert any(e["type"] == "citations" for e in events)
     assert any(e["type"] == "actions" for e in events)
     assert kinds[-1] == "done" and events[-1]["conversation_id"] == 7
@@ -168,15 +168,15 @@ async def test_stream_turn_emits_interrupt_event(monkeypatch, no_summary_task):
 
     class FakeGraph:
         async def astream(self, inp, config, stream_mode=None):
-            yield ("updates", {"fetch_order": None})
+            yield ("updates", {"fetch_workorder": None})
             yield ("updates", {"__interrupt__": (Intr(
-                {"type": "select_order", "orders": [{"order_id": "1001"}]}),)})
+                {"type": "select_workorder", "workorders": [{"workorder_no": "1001"}]}),)})
 
     monkeypatch.setattr(runtime, "get_graph", lambda: FakeGraph())
-    events = [e async for e in runtime.stream_turn("u1", "我要退款", None)]
+    events = [e async for e in runtime.stream_turn("u1", "我要退费", None)]
     intr = [e for e in events if e["type"] == "interrupt"]
-    assert intr and intr[0]["kind"] == "select_order"
-    assert intr[0]["orders"] == [{"order_id": "1001"}]
+    assert intr and intr[0]["kind"] == "select_workorder"
+    assert intr[0]["workorders"] == [{"workorder_no": "1001"}]
     assert intr[0]["conversation_id"] == 9   # 中断带会话号供前端续跑(无 done 帧)
 
 
@@ -189,11 +189,11 @@ async def test_resume_turn_drives_command(monkeypatch, no_summary_task):
         async def ainvoke(self, inp, config):
             seen["is_command"] = isinstance(inp, Command)
             seen["resume"] = getattr(inp, "resume", None)
-            return {"answer": "这一单可以退款", "messages": []}
+            return {"answer": "这一单可以退费", "messages": []}
 
     async def fake_get(cid): return object()
     monkeypatch.setattr(runtime.repository, "get_conversation", fake_get)
     monkeypatch.setattr(runtime, "get_graph", lambda: FakeGraph())
     out = await runtime.resume_turn(5, "1001")
     assert seen["is_command"] and seen["resume"] == "1001"
-    assert out["conversation_id"] == 5 and out["state"]["answer"] == "这一单可以退款"
+    assert out["conversation_id"] == 5 and out["state"]["answer"] == "这一单可以退费"

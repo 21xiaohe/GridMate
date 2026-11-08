@@ -38,9 +38,9 @@ def stub_kb(monkeypatch):
 
 
 async def _seed():
-    rid = await repository.insert_review_item("猫窝是否支持水洗", "可以,以平台售后规则为准")
+    rid = await repository.insert_review_item("表箱是否支持水洗", "可以,以当地供电公司公示规则为准")
     lcq = await repository.insert_low_confidence(
-        None, "猫窝可以洗吗", "user_feedback", None,
+        None, "表箱可以洗吗", "user_feedback", None,
         retrieved_chunks=[{"question": "q", "answer": "a", "rerank_score": 0.3, "section_path": "s"}])
     await repository.set_matched_review(lcq, rid)
     return rid
@@ -59,7 +59,7 @@ async def test_detail_carries_raws_and_snapshot(client):
     r = await client.get(f"/api/review/{rid}")
     assert r.status_code == 200
     d = r.json()
-    assert d["normalized_question"] == "猫窝是否支持水洗"
+    assert d["normalized_question"] == "表箱是否支持水洗"
     assert d["raws"][0]["source"] == "user_feedback"
     assert d["raws"][0]["retrieved_chunks"][0]["rerank_score"] == 0.3
     assert (await client.get("/api/review/99999")).status_code == 404
@@ -70,7 +70,7 @@ async def test_approve_writes_kb_and_flips_status(client, stub_kb):
     r = await client.post(f"/api/review/{rid}/approve", json={"approved_answer": "可以水洗,注意阴干"})
     assert r.status_code == 200 and r.json()["chunk_ids"] == [101]
     chunk = stub_kb["chunks"][0]
-    assert chunk.questions == "猫窝是否支持水洗" and chunk.answer == "可以水洗,注意阴干"
+    assert chunk.questions == "表箱是否支持水洗" and chunk.answer == "可以水洗,注意阴干"
     assert chunk.content_type == "faq"
     assert stub_kb["vectorized"] is True
     r2 = await client.get(f"/api/review/{rid}")

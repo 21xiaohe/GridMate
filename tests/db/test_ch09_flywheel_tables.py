@@ -3,8 +3,8 @@ from app.db import repository
 
 
 async def test_insert_low_confidence_with_snapshot(db_session_factory):
-    snap = [{"question": "退货运费谁出", "answer": "满99包邮", "rerank_score": 0.91, "section_path": "售后 / 退货"}]
-    lcq_id = await repository.insert_low_confidence(None, "猫窝能水洗吗", "retrieval_low_conf", "top1=0.2", retrieved_chunks=snap)
+    snap = [{"question": "退费违约金谁出", "answer": "满99缴费", "rerank_score": 0.91, "section_path": "用电业务 / 退费"}]
+    lcq_id = await repository.insert_low_confidence(None, "表箱能水洗吗", "retrieval_low_conf", "top1=0.2", retrieved_chunks=snap)
     rows = await repository.fetch_unmatched_low_conf(10)
     assert [r.id for r in rows] == [lcq_id]
     assert rows[0].retrieved_chunks[0]["rerank_score"] == 0.91
@@ -18,9 +18,9 @@ async def test_insert_low_confidence_without_snapshot(db_session_factory):
 
 
 async def test_review_item_create_and_merge(db_session_factory):
-    rid = await repository.insert_review_item("猫窝是否支持水洗", "可以,答案备查")
+    rid = await repository.insert_review_item("表箱是否支持水洗", "可以,答案备查")
     cands = await repository.list_review_candidates()
-    assert cands == [{"id": rid, "normalized_question": "猫窝是否支持水洗"}]
+    assert cands == [{"id": rid, "normalized_question": "表箱是否支持水洗"}]
     await repository.increment_occurrence(rid)
     await repository.increment_occurrence(rid)
     (item, raws) = await repository.get_review_detail(rid)
@@ -30,8 +30,8 @@ async def test_review_item_create_and_merge(db_session_factory):
 
 
 async def test_set_matched_review_links_raws(db_session_factory):
-    rid = await repository.insert_review_item("猫窝是否支持水洗", None)
-    lcq_id = await repository.insert_low_confidence(None, "猫窝可以洗吗", "user_feedback", None)
+    rid = await repository.insert_review_item("表箱是否支持水洗", None)
+    lcq_id = await repository.insert_low_confidence(None, "表箱可以洗吗", "user_feedback", None)
     await repository.set_matched_review(lcq_id, rid)
     _, raws = await repository.get_review_detail(rid)
     assert [r.id for r in raws] == [lcq_id]
@@ -39,7 +39,7 @@ async def test_set_matched_review_links_raws(db_session_factory):
 
 
 async def test_update_review_status_only_from_pending(db_session_factory):
-    rid = await repository.insert_review_item("猫窝是否支持水洗", None)
+    rid = await repository.insert_review_item("表箱是否支持水洗", None)
     assert await repository.update_review_status(rid, "通过", approved_answer="可以水洗") is True
     item, _ = await repository.get_review_detail(rid)
     assert item.review_status == "通过" and item.approved_answer == "可以水洗"

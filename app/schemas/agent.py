@@ -28,4 +28,4 @@ class AgentResponse(BaseModel):
     suggested_actions: list = Field(default_factory=list)
     interrupt: dict | None = Field(
         default=None,
-        description="中断负载(含 type:select_order 带 orders / confirm_ticket 带 preview);无则 None")
+        description="中断负载(含 type:select_workorder 带 workorders / confirm_ticket 带 preview);无则 None")

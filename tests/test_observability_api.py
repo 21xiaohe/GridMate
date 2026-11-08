@@ -10,8 +10,8 @@ from app.db import repository
 
 COST = {
     "meta": {"days": 7, "source": "Langfuse", "generated_at": "2026-07-29 10:00"},
-    "rows": [{"intent": "商品咨询", "count": 3, "tokens": 8821, "avg_tokens": 2940, "share": 0.4712},
-             {"intent": "物流", "count": 1, "tokens": 7942, "avg_tokens": 7942, "share": 0.4243}],
+    "rows": [{"intent": "业务咨询", "count": 3, "tokens": 8821, "avg_tokens": 2940, "share": 0.4712},
+             {"intent": "报修", "count": 1, "tokens": 7942, "avg_tokens": 7942, "share": 0.4243}],
     "total_tokens": 16763, "total_requests": 4,
 }
 CALIB = {
@@ -68,7 +68,7 @@ async def test_cost_is_passed_through_verbatim(client, reports):
     cost = (await client.get("/api/observability/overview")).json()["cost"]
     assert cost["present"] is True and cost["status"] == "ok"
     assert cost["rows"] == COST["rows"]
-    assert cost["top"]["intent"] == "商品咨询"
+    assert cost["top"]["intent"] == "业务咨询"
     assert cost["total_tokens"] == 16763
 
 
@@ -120,14 +120,14 @@ async def test_broken_report_does_not_take_down_the_page(client, reports):
 async def test_read_notes_come_from_the_artifacts(client, reports):
     """读图小注也是产物的一部分:脚本落盘时就校过数,API 原样端出去,不在这儿重写。"""
     reports[0].write_text(json.dumps(
-        {**COST, "read_notes": {"cost_by_intent": "商品咨询占 47%,先给它瘦 prompt"}},
+        {**COST, "read_notes": {"cost_by_intent": "业务咨询占 47%,先给它瘦 prompt"}},
         ensure_ascii=False), encoding="utf-8")
     reports[1].write_text(json.dumps(
         {**CALIB, "read_notes": {"confidence_calibration": "线定在 0.26,库外一条都进不来"}},
         ensure_ascii=False), encoding="utf-8")
 
     body = (await client.get("/api/observability/overview")).json()
-    assert body["cost"]["read_note"] == "商品咨询占 47%,先给它瘦 prompt"
+    assert body["cost"]["read_note"] == "业务咨询占 47%,先给它瘦 prompt"
     assert body["calibration"]["read_note"] == "线定在 0.26,库外一条都进不来"
 
 

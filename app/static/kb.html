@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>爪爪优选 · 知识库录入</title>
+  <title>省级电网营销服务中心 · 知识库录入</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'><rect x='2' y='2' width='4' height='4' fill='%232b2632'/><rect x='10' y='2' width='4' height='4' fill='%232b2632'/><rect x='2' y='4' width='12' height='9' fill='%232b2632'/><rect x='3' y='3' width='2' height='3' fill='%23ff9f57'/><rect x='11' y='3' width='2' height='3' fill='%23ff9f57'/><rect x='3' y='5' width='10' height='7' fill='%23ff9f57'/><rect x='5' y='7' width='1' height='2' fill='%232b2632'/><rect x='10' y='7' width='1' height='2' fill='%232b2632'/><rect x='7' y='9' width='2' height='1' fill='%23ff8095'/></svg>" />
   <link rel="stylesheet" href="/static/acceptance.css" />
   <style>
@@ -135,12 +135,12 @@
     <div class="panel">
       <h2>⑤ 检索自测 <span class="pill info">换个说法问一句</span></h2>
       <p class="lede">
-        问题向量化后到 Milvus 按相似度取 Top-K。「邮费是多少」库里一个字都没写过，
-        靠的是与「运费」那块语义相近——词面查表做不到这件事。
+        问题向量化后到 Milvus 按相似度取 Top-K。「违约金是多少」库里一个字都没写过，
+        靠的是与「违约金」那块语义相近——词面查表做不到这件事。
       </p>
       <div class="form">
         <div class="line">
-          <input type="text" id="q" placeholder="邮费是多少" />
+          <input type="text" id="q" placeholder="违约金是多少" />
           <label for="strategy">路线</label>
           <select id="strategy">
             <option value="vector">dense 向量单路（本章）</option>
@@ -169,7 +169,7 @@
   <script src="/static/admin.js"></script>
   <script src="/static/acceptance.js"></script>
   <script>
-    const SAMPLE = `# 会员权益\n\n## 运费与包邮\n\n满 99 元包邮，未满收 10 元运费。偏远地区（新疆、西藏、内蒙）运费 20 元，不参与包邮。\n\n## 会员等级\n\n| 等级 | 年消费 | 折扣 | 生日礼 |\n|---|---|---|---|\n| 喵铜 | 0 元起 | 无 | 无 |\n| 喵银 | 1000 元起 | 95 折 | 优惠券 |\n| 喵金 | 5000 元起 | 9 折 | 猫罐头礼盒 |\n`;
+    const SAMPLE = `# 电价政策\n\n## 居民阶梯电价\n\n居民用电按年度电量分三档，一档执行目录电价，二、三档逐档提高。\n\n## 峰谷分时电价\n\n| 时段 | 划分 | 电价 |\n|---|---|---|---|\n| 高峰 | 8:00-22:00 | 高 |\n| 平段 | 其余时段 | 中 |\n| 低谷 | 0:00-8:00 | 低 |\n\n是否执行由用户自愿申请，以当地规则为准。\n`;
 
     let state = null;
     let jobSpecs = {};
@@ -351,7 +351,7 @@
           if (st === "kept") {
             const tip = el("div", "lede",
               "这些是模型从历史对话里归纳出来的，质量参差。逐条看清楚再采纳，"
-              + "只对单笔订单成立的、夹带订单号的、答非所问的，都别放进知识库。");
+              + "只对单笔工单成立的、夹带工单号的、答非所问的，都别放进知识库。");
             tip.style.margin = "0 0 8px";
             box.appendChild(tip);
           }
@@ -575,7 +575,7 @@
     $("stgBtn").addEventListener("click", loadStaging);
     $("searchBtn").addEventListener("click", doSearch);
     $("q").addEventListener("keydown", (e) => { if (e.key === "Enter") doSearch(); });
-    for (const q of ["邮费是多少", "运费怎么算", "多久发货", "猫粮过期了能退吗"]) {
+    for (const q of ["违约金是多少", "违约金怎么算", "多久装表", "电能表过期了能退吗"]) {
       const b = el("button", "btn sm", q);
       b.addEventListener("click", () => { $("q").value = q; doSearch(); });
       $("presets").appendChild(b);

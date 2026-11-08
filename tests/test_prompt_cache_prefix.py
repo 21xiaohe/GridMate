@@ -1,6 +1,6 @@
 """前缀缓存不变量:发给模型的消息里,可变内容一律不许进 SystemMessage。
 
-各家 prompt caching 都按前缀精确匹配。system 是 messages[0],把每轮都变的证据/订单数据
+各家 prompt caching 都按前缀精确匹配。system 是 messages[0],把每轮都变的证据/工单数据
 拼进去,等于让 system + tools 这段稳定前缀(本项目约 1664 tokens)每次请求全部 miss,
 而 ReAct 环每一步都重发一次 system,损失是乘上去的。
 
@@ -12,17 +12,17 @@ from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, Tool
 from app.core.prompts import AGENT_SYSTEM
 from app.graph.nodes import _agent_messages
 
-EVIDENCE = "[1] 退货政策: 7天无理由"
-ORDER = {"order_id": "1001", "status": "已签收", "product": "猫粮 5kg"}
+EVIDENCE = "[1] 退费政策: 7天无理由"
+ORDER = {"workorder_no": "1001", "status": "已完工", "business_type": "低压电流互感器"}
 
 STATES = [
-    ("business", {"route": "business", "messages": [HumanMessage("订单1001到哪了")]}),
+    ("business", {"route": "business", "messages": [HumanMessage("工单1001到哪了")]}),
     ("knowledge", {"route": "knowledge", "evidence": EVIDENCE,
                    "messages": [HumanMessage("能退吗")]}),
-    ("refund", {"route": "refund_flow", "evidence": EVIDENCE, "order_data": ORDER,
+    ("refund", {"route": "refund_flow", "evidence": EVIDENCE, "workorder_data": ORDER,
                 "messages": [HumanMessage("这单能退吗")]}),
     ("knowledge+摘要", {"route": "knowledge", "evidence": EVIDENCE,
-                        "summary": "用户问过订单1001", "messages": [HumanMessage("能退吗")]}),
+                        "summary": "用户问过工单1001", "messages": [HumanMessage("能退吗")]}),
 ]
 
 
@@ -55,8 +55,8 @@ def test_exactly_one_system_message(name, state):
 def test_volatile_payload_never_lands_in_any_system_message(name, state):
     """摘要那条 system 也不许混进可变载荷。"""
     systems = " ".join(m.content for m in _agent_messages(state) if isinstance(m, SystemMessage))
-    for volatile in ("[1] 退货政策", "猫粮 5kg", "已检索到的知识证据", "退款判定任务",
-                     "用户问过订单1001"):
+    for volatile in ("[1] 退费政策", "低压电流互感器", "已检索到的知识证据", "退费判定任务",
+                     "用户问过工单1001"):
         assert volatile not in systems
 
 
@@ -65,14 +65,14 @@ def test_step1_prompt_is_strict_prefix_of_step2():
 
     这条同时锁死了插入位置:谁把本轮材料改成追加到列表末尾、或塞到滑窗前面,这里立刻红。
     """
-    base = {"route": "refund_flow", "evidence": EVIDENCE, "order_data": ORDER}
+    base = {"route": "refund_flow", "evidence": EVIDENCE, "workorder_data": ORDER}
     q = HumanMessage("这单能退吗", id="db-1")
     step1 = _agent_messages({**base, "messages": [q]})
     step2 = _agent_messages({**base, "messages": [
         q,
-        AIMessage("", tool_calls=[{"name": "query_order", "args": {"order_id": "1001"},
+        AIMessage("", tool_calls=[{"name": "query_workorder", "args": {"workorder_no": "1001"},
                                    "id": "call_1"}]),
-        ToolMessage("已签收", tool_call_id="call_1", name="query_order"),
+        ToolMessage("已完工", tool_call_id="call_1", name="query_workorder"),
     ]})
     shape = lambda ms: [(m.type, m.content) for m in ms]      # noqa: E731
     assert shape(step2)[:len(step1)] == shape(step1)

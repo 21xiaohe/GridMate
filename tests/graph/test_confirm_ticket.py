@@ -28,7 +28,7 @@ class FakeModel:
         if self.calls == 1:
             return AIMessage(content="", tool_calls=[{
                 "name": "create_ticket", "id": "tc-1",
-                "args": {"description": "猫砂盆漏电", "ticket_type": "售后"}}])
+                "args": {"description": "电表箱漏电", "ticket_type": "用电业务"}}])
         return AIMessage(content="已为您创建工单,请留意工单号。")
 
 
@@ -74,14 +74,14 @@ async def test_confirm_true_creates_ticket(wired):
     created, audits = wired
     g = build_graph(checkpointer=InMemorySaver())
     cfg = {"configurable": {"thread_id": "t1"}}
-    st = await g.ainvoke(_graph_input("u1", "帮我建个工单,猫砂盆漏电", 1, 1, "", 0), cfg)
+    st = await g.ainvoke(_graph_input("u1", "帮我建个工单,电表箱漏电", 1, 1, "", 0), cfg)
     intr = st["__interrupt__"][0].value
     assert intr["type"] == "confirm_ticket"
-    assert intr["preview"] == {"ticket_type": "售后", "description": "猫砂盆漏电"}
+    assert intr["preview"] == {"ticket_type": "用电业务", "description": "电表箱漏电"}
     assert created == []                                        # interrupt 时未执行
 
     st2 = await g.ainvoke(Command(resume={"confirmed": True}), cfg)
-    assert created == [(1, "猫砂盆漏电", "售后")]
+    assert created == [(1, "电表箱漏电", "用电业务")]
     assert any(a["status"] == "成功" and a["tool_name"] == "create_ticket" for a in audits)
     assert "T20260717001" in str(st2["messages"])               # 工单号回灌到 ToolMessage
 
@@ -90,7 +90,7 @@ async def test_confirm_false_denied_and_audited(wired):
     created, audits = wired
     g = build_graph(checkpointer=InMemorySaver())
     cfg = {"configurable": {"thread_id": "t2"}}
-    await g.ainvoke(_graph_input("u1", "帮我建个工单,猫砂盆漏电", 1, 1, "", 0), cfg)
+    await g.ainvoke(_graph_input("u1", "帮我建个工单,电表箱漏电", 1, 1, "", 0), cfg)
     st2 = await g.ainvoke(Command(resume={"confirmed": False}), cfg)
     assert created == []                                        # 没建
     assert any(a["status"] == "权限拒绝" and a["tool_name"] == "create_ticket" for a in audits)
@@ -125,7 +125,7 @@ async def test_multiple_create_ticket_only_first_confirmed(wired):
             if self.calls == 1:
                 return AIMessage(content="", tool_calls=[
                     {"name": "create_ticket", "id": "tc-1",
-                     "args": {"description": "猫砂盆漏电", "ticket_type": "售后"}},
+                     "args": {"description": "电表箱漏电", "ticket_type": "用电业务"}},
                     {"name": "create_ticket", "id": "tc-2",
                      "args": {"description": "重复请求", "ticket_type": "咨询"}}])
             return AIMessage(content="好的")
@@ -140,19 +140,19 @@ async def test_multiple_create_ticket_only_first_confirmed(wired):
     with _pytest.MonkeyPatch.context() as mp:
         mp.setattr(nodes_mod, "get_chat_model", lambda **kw: model)
         st = await g.ainvoke(_graph_input("u1", "建两个工单", 1, 1, "", 0), cfg)
-        assert st["__interrupt__"][0].value["preview"]["description"] == "猫砂盆漏电"
+        assert st["__interrupt__"][0].value["preview"]["description"] == "电表箱漏电"
         st2 = await g.ainvoke(Command(resume={"confirmed": True}), cfg)
-    assert created == [(1, "猫砂盆漏电", "售后")]               # 只建第一个
+    assert created == [(1, "电表箱漏电", "用电业务")]               # 只建第一个
     assert "一次只处理一个" in str(st2["messages"])
 
 
 async def test_resume_value_mismatch_treated_as_cancel(wired):
-    """resume 值形状守卫:confirm_ticket 挂起时误传 order_id 字符串(两种中断共用一个端点),
+    """resume 值形状守卫:confirm_ticket 挂起时误传 workorder_no 字符串(两种中断共用一个端点),
     按未确认处理——不建单、不炸节点。"""
     created, audits = wired
     g = build_graph(checkpointer=InMemorySaver())
     cfg = {"configurable": {"thread_id": "t5"}}
-    await g.ainvoke(_graph_input("u1", "帮我建个工单,猫砂盆漏电", 1, 1, "", 0), cfg)
+    await g.ainvoke(_graph_input("u1", "帮我建个工单,电表箱漏电", 1, 1, "", 0), cfg)
     st2 = await g.ainvoke(Command(resume="1001"), cfg)          # 错配:字符串而非 {"confirmed": bool}
     assert created == []                                        # 没建
     assert any(a["status"] == "权限拒绝" for a in audits)

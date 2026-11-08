@@ -32,8 +32,8 @@ def _stub_snapshot(monkeypatch, question, snapshot):
 
 def test_down_pools_with_snapshot_when_question_matches(client, spy_insert, monkeypatch):
     snap = [{"question": "x", "answer": "y", "rerank_score": 0.4, "section_path": "s"}]
-    _stub_snapshot(monkeypatch, "猫窝能水洗吗", snap)
-    r = client.post("/api/feedback", json={"conversation_id": 1, "rating": "down", "question": "猫窝能水洗吗"})
+    _stub_snapshot(monkeypatch, "表箱能水洗吗", snap)
+    r = client.post("/api/feedback", json={"conversation_id": 1, "rating": "down", "question": "表箱能水洗吗"})
     assert r.status_code == 200 and r.json()["pooled"] is True
     assert spy_insert[0]["source"] == "user_feedback"
     assert spy_insert[0]["chunks"] == snap        # 问题对得上 → 快照带走
@@ -42,7 +42,7 @@ def test_down_pools_with_snapshot_when_question_matches(client, spy_insert, monk
 def test_down_pools_without_snapshot_when_question_differs(client, spy_insert, monkeypatch):
     _stub_snapshot(monkeypatch, "另一个问题",
                    [{"question": "x", "answer": "y", "rerank_score": 0.4, "section_path": "s"}])
-    r = client.post("/api/feedback", json={"conversation_id": 1, "rating": "down", "question": "猫窝能水洗吗"})
+    r = client.post("/api/feedback", json={"conversation_id": 1, "rating": "down", "question": "表箱能水洗吗"})
     assert r.status_code == 200
     assert spy_insert[0]["chunks"] is None        # 对不上 → 空着(尽力而已,不硬塞)
 
@@ -51,7 +51,7 @@ def test_down_survives_snapshot_failure(client, spy_insert, monkeypatch):
     async def boom(cid):
         raise RuntimeError("checkpointer 不可用")
     monkeypatch.setattr(feedback_api.runtime, "get_turn_snapshot", boom)
-    r = client.post("/api/feedback", json={"conversation_id": 1, "rating": "down", "question": "猫窝能水洗吗"})
+    r = client.post("/api/feedback", json={"conversation_id": 1, "rating": "down", "question": "表箱能水洗吗"})
     assert r.status_code == 200                   # 回捞失败不拦落池
     assert spy_insert[0]["chunks"] is None
 

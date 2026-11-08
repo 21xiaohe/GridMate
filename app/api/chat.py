@@ -34,7 +34,7 @@ async def chat(req: ChatRequest):
                 elif ev["type"] == "citations":
                     yield _sse({"event": "citations", "items": ev["items"]})
                 elif ev["type"] == "interrupt":
-                    # interrupt:负载透传(select_order 带 orders / confirm_ticket 带 preview),前端按 kind 分发
+                    # interrupt:负载透传(select_workorder 带 workorders / confirm_ticket 带 preview),前端按 kind 分发
                     yield _sse({"event": "interrupt",
                                 **{k: v for k, v in ev.items() if k != "type"}})
                 elif ev["type"] == "actions":

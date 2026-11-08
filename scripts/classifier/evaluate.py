@@ -1,5 +1,5 @@
 """classifier 评测:留出测试集上每类 P/R/F1 + 每类混淆矩阵 + 容错红线 + 判错样本导出。
-运行:make classifier-eval。评测集扎在自家电商场景(dataset/test.jsonl),不引公开榜单。
+运行:make classifier-eval。评测集扎在自家电力营销服务场景(dataset/test.jsonl),不引公开榜单。
 产物一式两份:.md 给人读、.json 给验收页读(/acceptance/eval、/acceptance/errors),同一次评测同一份数。"""
 import datetime as dt
 import json

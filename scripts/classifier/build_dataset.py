@@ -10,11 +10,11 @@ from scripts.classifier.corpus_lib import split_dataset
 
 SRC = pathlib.Path("data/classifier/corpus_labeled.jsonl")
 OUT = pathlib.Path("data/classifier/dataset")
-# 第一版评估翻车的定向补数:光杆「买大了想退」类短句(无商品名/无「尺码」字眼)
-# 训练覆盖不足,尺码打不出来;只补训练集,考题不动
+# 第一版评估翻车的定向补数:光杆「买大了想退」类短句(无业务名/无「规格」字眼)
+# 训练覆盖不足,规格打不出来;只补训练集,考题不动
 SUPPLEMENT = pathlib.Path(__file__).parent / "supplement_sizefit.jsonl"
 
-AUGMENT_PROMPT = """把下面这句电商客服用户问题改写一个变体:换同义词、微调句式(比如改成「我想问一下……」的口气),
+AUGMENT_PROMPT = """把下面这句电力营销服务客服用户问题改写一个变体:换同义词、微调句式(比如改成「我想问一下……」的口气),
 不改原意、不增删诉求。只输出改写后的句子。
 
 {text}"""

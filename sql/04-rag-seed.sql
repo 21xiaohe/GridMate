@@ -15,10 +15,10 @@ SET @c1 = (SELECT id FROM conversations WHERE user_id = 'seed-u1' ORDER BY id DE
 SET @c2 = (SELECT id FROM conversations WHERE user_id = 'seed-u2' ORDER BY id DESC LIMIT 1);
 
 INSERT INTO messages (conversation_id, role, content) VALUES
-  (@c1, 'user',      '你们发货一般多久啊'),
-  (@c1, 'assistant', '现货商品付款后 48 小时内发货,预售以商品详情页标注时间为准。'),
-  (@c2, 'user',      '满多少包邮'),
-  (@c2, 'assistant', '单笔订单满 99 元包邮,未满收取 10 元运费,偏远地区另计。');
+  (@c1, 'user',      '你们装表一般多久啊'),
+  (@c1, 'assistant', '现货业务付款后 48 小时内装表,预售以业务详情页标注时间为准。'),
+  (@c2, 'user',      '满多少缴费'),
+  (@c2, 'assistant', '单笔工单满 99 元缴费,未满收取 10 元违约金,偏远地区另计。');
 
 -- 段3 验证:seed 会话应为 2,消息应为 4
 SELECT COUNT(*) AS after_conv FROM conversations WHERE user_id LIKE 'seed-%';

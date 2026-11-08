@@ -25,8 +25,8 @@ class Settings(BaseSettings):
     chat_reasoning_split: str = ""    # MiniMax 专属:true 让思考进 reasoning_content 独立字段,
                                       # 而不是混在 content 里的 <think>。关不掉思考链时靠它兜底
     token_budget: int = 2000
-    database_url: str = "mysql+asyncmy://root:root@localhost:3306/pawserve"
-    test_database_url: str = "mysql+asyncmy://root:root@localhost:3306/pawserve_tools_test"
+    database_url: str = "mysql+asyncmy://root:root@localhost:3306/gridmate"
+    test_database_url: str = "mysql+asyncmy://root:root@localhost:3306/gridmate_tools_test"
     # rag 知识库检索
     embed_model: str = "BAAI/bge-m3"          # 上游真实名(无网关别名可用)
     milvus_uri: str = "http://localhost:19530"   # retrieval: Lite → Standalone
@@ -52,8 +52,8 @@ class Settings(BaseSettings):
     context_window_max_tokens: int = 3000 # 滑窗 token 上限(trim_messages 兜底)
     summary_model: str = ""               # 摘要模型,空=回落 chat_model
     # interrupt 工具系统(注册中心 + 执行引擎 + MCP 接入)
-    mcp_logistics_url: str = "http://127.0.0.1:8101/mcp"    # 物流 MCP Server
-    mcp_aftersales_url: str = "http://127.0.0.1:8102/mcp"   # 售后 MCP Server
+    mcp_repair_url: str = "http://127.0.0.1:8101/mcp"    # 报修 MCP Server
+    mcp_business_url: str = "http://127.0.0.1:8102/mcp"   # 用电业务 MCP Server
     tool_default_timeout: float = 5.0    # 内置工具默认超时(秒)
     mcp_tool_timeout: float = 10.0       # MCP 工具默认超时(走 HTTP,放宽)
     tool_max_retries: int = 2            # 只读工具暂时性故障最大重试次数

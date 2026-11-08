@@ -5,23 +5,23 @@ from app.core.prompts import CUSTOMER_SERVICE_PROMPT, EXTRACT_PROMPT, AGENT_SYST
 
 def test_customer_service_prompt_renders_with_history():
     msgs = CUSTOMER_SERVICE_PROMPT.format_messages(
-        history=[HumanMessage("你们卖猫粮吗?")]
+        history=[HumanMessage("你们卖电能表吗?")]
     )
     assert msgs[0].type == "system"
-    assert msgs[-1].content == "你们卖猫粮吗?"
+    assert msgs[-1].content == "你们卖电能表吗?"
     # 行为约束必须写进 system prompt
-    for keyword in ("客服", "不", "订单"):
+    for keyword in ("客服", "不", "工单"):
         assert keyword in msgs[0].content
 
 
 def test_extract_prompt_renders_text():
-    msgs = EXTRACT_PROMPT.format_messages(text="订单 MH1 坏了要退款")
+    msgs = EXTRACT_PROMPT.format_messages(text="工单 MH1 坏了要退费")
     assert msgs[0].type == "system"
-    assert "订单 MH1 坏了要退款" in msgs[-1].content
+    assert "工单 MH1 坏了要退费" in msgs[-1].content
 
 
 def test_agent_system_covers_tool_principles():
-    for kw in ["爪爪", "工具", "query_faq", "create_ticket", "不要臆造"]:
+    for kw in ["电小智", "工具", "query_faq", "create_ticket", "不要臆造"]:
         assert kw in AGENT_SYSTEM
 
 
