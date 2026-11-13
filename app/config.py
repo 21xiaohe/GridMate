@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     # token 花销不在环里卡:那是成本控制,归 flywheel 跟 Langfuse 的账一起看。
     # tokens_used 仍逐步累加,进 trace 供排障和统计,只是不再当停止条件。
     checkpointer_db_path: str = "data/agent_checkpoints.sqlite"  # LangGraph checkpointer(data/*.db* 已 gitignore)
-    # ticket 意图识别模型配置(先求准:默认大模型;降级路仅种子,本章不实现运行时)
+    # ticket 意图识别模型配置(先求准:默认大模型;降级路仅种子,不实现运行时)
     intent_model: str = ""            # 意图识别模型名;空=回落 chat_model
     intent_small_model: str = ""      # 降级路小模型(种子,未接运行时)
     intent_mode: str = "accuracy"     # accuracy=只用大模型;cost=小模型判→低置信升级大模型(未实现)

@@ -7,7 +7,7 @@ def test_builtin_scan_registers_core_tools_without_query_repair():
     names = {s.name for s in registry.builtin_specs()}
     # 钉红线不钉全集:核心五工具必须在、query_repair 必须不在(报修由 MCP 接管)。
     # builtin/ 是"丢文件即注册"的即插即用目录(如验收 1 的 promotions.py),
-    # 断言精确集合会让任何合法丢入文件打红测试,与本章语义自相矛盾。
+    # 断言精确集合会让任何合法丢入文件打红测试,与本测试语义自相矛盾。
     assert {"query_workorder", "query_meter", "query_faq", "create_ticket", "submit_refund"} <= names
     assert "query_repair" not in names
 

@@ -248,7 +248,7 @@ async def vectorize() -> dict:
 
 class SearchIn(BaseModel):
     q: str
-    strategy: str = "vector"        # 本章只跑 dense 单路;bm25/hybrid 是 retrieval 的事
+    strategy: str = "vector"        # 此端点只跑 dense 单路;bm25/hybrid 走 retrieval
     top_k: int = Field(default=5, ge=1, le=20)
 
 
