@@ -1,0 +1,44 @@
+<!-- 阅读导航：手绘矢量示意图，只做电力主题装饰，不代表真实地理位置或监测状态。 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 265" fill="none">
+  <!-- 学习注释：底部平面和圆形背景，建立配电设备的空间层次。 -->
+  <circle cx="291" cy="123" r="112" fill="#f0f5e9"/>
+  <circle cx="393" cy="71" r="24" fill="#f6e8bd"/>
+  <path d="m37 205 199-69 227 63-190 56Z" fill="#eef3ed"/>
+  <g stroke="#dce6da" stroke-width="1">
+    <path d="m69 213 199-69m-158 81 199-69m-155 81 199-69m-153 82 199-69M86 188l225 64M133 172l223 63M180 155l225 64"/>
+  </g>
+  <!-- 学习注释：输配电铁塔及其横担；线条颜色统一为青绿。 -->
+  <g stroke="#356d5b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m104 209 30-151h10l29 151M134 58l5-18 5 18M126 96h26M120 125h38M113 157h51M107 191h63M104 209h69"/>
+    <path d="m126 96 32 29-45 32 57 34M152 96l-32 29 44 32-57 34M119 104h40M117 77h44l11 11h-66Z"/>
+    <path d="M100 112h78l11 12H88Zm6-24v12m19-12v10m28-10v10m19-10v12M92 124v12m21-12v12m52-12v12m21-12v12"/>
+  </g>
+  <!-- 学习注释：电线从铁塔延伸到配电设施，虚线表示概念连接。 -->
+  <path d="M106 100c60 41 135 7 191 18M186 136c40 8 67-3 111-3" stroke="#88aa94" stroke-width="1.6"/>
+  <path d="m164 209 90 27 93-33" stroke="#5d9a80" stroke-width="2" stroke-dasharray="5 5"/>
+  <circle cx="254" cy="236" r="4" fill="#f0c573" stroke="#b68c43"/>
+  <!-- 学习注释：中部设备箱与闪电标记，不赋予虚构电压或运行值。 -->
+  <path d="m238 158 40-15 38 14-40 15Z" fill="#c7dacf" stroke="#7da38f"/>
+  <path d="m238 158 38 14v47l-38-14Z" fill="#e0eae0" stroke="#7da38f"/>
+  <path d="m276 172 40-15v47l-40 15Z" fill="#a4c3ae" stroke="#7da38f"/>
+  <path d="m253 173-6 14h8l-3 13 13-18h-8l5-9Z" fill="#b28438"/>
+  <g stroke="#557e67" stroke-width="1.5">
+    <path d="m286 182 19-7m-19 14 19-7m-19 14 19-7m-19 14 19-7M247 152v-14m12 10v-14m12 10v-14"/>
+  </g>
+  <!-- 学习注释：右侧楼宇代表用电侧，屋顶与窗户采用简单几何形状。 -->
+  <path d="m337 121 45-17 48 17-45 17Z" fill="#cfdfd3" stroke="#7da38f"/>
+  <path d="m337 121 48 17v76l-48-17Z" fill="#e6ede4" stroke="#7da38f"/>
+  <path d="m385 138 45-17v76l-45 17Z" fill="#aecab5" stroke="#7da38f"/>
+  <g stroke="#86a891" stroke-width="5">
+    <path d="m348 143 8 3m9 3 8 3m-25 5 8 3m9 3 8 3m-25 5 8 3m9 3 8 3m-25 5 8 3m9 3 8 3M396 149l8-3m9-3 8-3m-25 23 8-3m9-3 8-3m-25 23 8-3m9-3 8-3"/>
+  </g>
+  <!-- 学习注释：少量植被使插画更柔和，仍不代表真实地理分布。 -->
+  <g fill="#bad0ad" stroke="#83a382" stroke-width="1.3">
+    <path d="M208 200v-23m0 13c-13 1-17-12-15-17 10-1 18 7 15 17Zm1-7c-1-14 10-21 17-18 0 10-6 17-17 18Z"/>
+    <path d="M450 214v-24m0 14c-10 0-14-8-12-14 9-1 14 6 12 14Zm0-8c-1-11 7-17 13-15 0 8-5 14-13 15Z"/>
+  </g>
+  <!-- 学习注释：小型能源符号强调主题，白底圆形保持图形清晰。 -->
+  <circle cx="226" cy="75" r="20" fill="#fff" stroke="#d9e6d9"/>
+  <path d="m229 62-12 15h8l-2 11 12-16h-9Z" fill="#d6ab57"/>
+  <path d="M200 103h22M205 109h12M340 67h18m-9-9v18" stroke="#adbfaa" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

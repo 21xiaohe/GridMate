@@ -1,0 +1,226 @@
+/* 阅读导航：这份样式只控制界面；统计结果和数据版本仍由聊天接口返回。 */
+:root {
+  --bg: #f1f4f3; /* 页面底色：带一点绿色的浅灰。 */
+  --card: #fff; /* 聊天工作台的白色底。 */
+  --text: #203b3a; /* 正文使用深青色，保持对比度。 */
+  --muted: #687d7b; /* 次要说明的颜色。 */
+  --line: #e0e8e5; /* 分隔线颜色。 */
+  --accent: #117469; /* 电力主题的青绿色。 */
+  --accent-soft: #eaf4ef; /* 浅色标签和图标的底色。 */
+  --amber: #edc16b; /* 少量琥珀色用于电力符号。 */
+}
+/* 学习注释：边框计入宽高；清除浏览器默认间距。 */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+/* 学习注释：hidden用于第一次提问后收起欢迎区，优先于其他display规则。 */
+[hidden] { display: none !important; }
+body {
+  font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; /* 优先使用本机字体，无外部字体请求。 */
+  color: var(--text); /* 正文颜色。 */
+  background: var(--bg); /* 页面底色。 */
+  height: 100vh; /* 旧浏览器的视口高度回退值。 */
+  height: 100dvh; /* 移动端随地址栏变化调整高度。 */
+  display: flex; /* 左侧栏和右工作区横向排列。 */
+  overflow: hidden; /* 内容在内部聊天区滚动，输入框留在底部。 */
+}
+/* 学习注释：表单控件继承中文字体；SVG图标统一使用线描样式。 */
+button, textarea { font: inherit; }
+button { cursor: pointer; }
+.icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+/* 学习注释：键盘Tab选中按钮、来源标题时显示明显轮廓。 */
+:focus-visible { outline: 3px solid #d5a242; outline-offset: 4px; }
+.sidebar {
+  width: 236px; /* 侧栏固定宽度，正文占剩余空间。 */
+  flex-shrink: 0; /* 窗口缩小时先压缩正文而不是侧栏。 */
+  padding: 32px 22px 22px; /* 给品牌与分组留出空间。 */
+  background: #153e3b; /* 深色侧栏与白色工作台形成层次。 */
+  color: #eaf4ef; /* 深背景上使用浅文字。 */
+  display: flex; /* 各分组纵向排列。 */
+  flex-direction: column; /* 品牌在上，线路示意在下。 */
+  overflow-y: auto; /* 矮屏允许侧栏独立滚动。 */
+}
+/* 学习注释：品牌图标使用闪电符号，文字旁展示项目名。 */
+.brand { display: flex; align-items: center; gap: 11px; }
+.brand-mark { display: grid; place-items: center; width: 38px; height: 40px; border-radius: 12px; background: var(--amber); color: #153e3b; }
+.brand-name { font-size: 24px; font-weight: 650; letter-spacing: -.8px; }
+.brand-caption { color: #b4cec7; font-size: 10px; letter-spacing: 2.3px; margin-top: 3px; }
+.side-label { font-size: 11px; color: #adcac2; letter-spacing: 1.5px; margin: 38px 10px 13px; }
+/* 学习注释：这是当前页面的导航标识，不是假装可点击的其他功能入口。 */
+.active-page { display: flex; align-items: center; gap: 12px; background: #2b5550; border: 1px solid #40685f; border-radius: 10px; padding: 13px 15px; font-size: 14px; font-weight: 600; }
+.active-page::after { content: ''; width: 5px; height: 5px; background: var(--amber); border-radius: 50%; margin-left: auto; }
+.capability { display: flex; gap: 12px; padding: 14px 10px; }
+.capability .icon { color: #99bfb0; margin-top: 2px; }
+.capability strong { display: block; font-size: 13px; font-weight: 500; }
+.capability p { font-size: 11px; color: #b4cec7; margin-top: 6px; line-height: 1.6; }
+/* 学习注释：自动外边距把静态业务示意推向侧栏下方。 */
+.side-network { margin-top: auto; padding: 30px 10px 22px; }
+.side-network svg { width: 100%; height: 68px; }
+.network-caption { display: flex; justify-content: space-between; color: #b4cec7; font-size: 10px; margin-top: 4px; }
+.side-footer { border-top: 1px solid #3c5e57; padding-top: 19px; font-size: 11px; color: #b4cec7; display: flex; align-items: center; gap: 8px; }
+.side-footer .icon { width: 14px; height: 14px; }
+.main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+/* 学习注释：主区顶部保留简短路径和本地演示标识。 */
+.topbar { height: 77px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 36px; border-bottom: 1px solid #dce5e0; }
+.breadcrumb { display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--muted); }
+.breadcrumb strong { font-weight: 500; color: var(--text); }
+.breadcrumb .icon { width: 16px; height: 16px; }
+.badge { border: 1px solid #d4dfd8; background: #f7f9f6; border-radius: 6px; padding: 5px 9px; color: #536b61; font-size: 11px; white-space: nowrap; }
+.mobile-brand { display: none; }
+/* 学习注释：min-height:0允许Flex内的聊天区缩小并出现内部滚动条。 */
+.workspace { flex: 1; min-height: 0; padding: 28px 34px 22px; display: flex; flex-direction: column; width: 100%; max-width: 1360px; margin: 0 auto; }
+.page-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 21px; }
+.page-heading h1 { font-size: 22px; font-weight: 650; letter-spacing: .5px; }
+.page-heading p { color: var(--muted); font-size: 12px; margin-top: 8px; line-height: 1.6; }
+.heading-emblem { color: var(--accent); display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid #d3e0d9; border-radius: 50%; }
+.workbench { min-height: 0; flex: 1; display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 5px 22px #284d3810; overflow: hidden; }
+.bench-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px solid #edf1ee; padding: 16px 25px; flex-shrink: 0; }
+.bench-title { display: flex; align-items: center; gap: 9px; font-size: 13px; font-weight: 600; }
+.bench-title .icon { color: var(--accent); width: 17px; height: 17px; }
+.bench-note { color: var(--muted); font-size: 11px; }
+/* 学习注释：消息区独立滚动；细网格呼应电网，但不表达真实线路位置。 */
+#chat { flex: 1; min-height: 0; padding: 26px 30px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #b6c9c2 transparent; background-image: radial-gradient(#d4dfd865 .65px, transparent .65px); background-size: 18px 18px; }
+.welcome { max-width: 1040px; margin: 0 auto; }
+.hero { display: grid; grid-template-columns: 1fr 1.15fr; align-items: center; gap: 12px; min-height: 235px; }
+.eyebrow { display: flex; align-items: center; gap: 8px; font-size: 10px; letter-spacing: 2px; font-weight: 600; color: var(--accent); margin-bottom: 17px; }
+.eyebrow::before { content: ''; width: 20px; height: 2px; background: var(--accent); }
+.hero h2 { font-size: clamp(24px, 2.2vw, 35px); font-weight: 600; line-height: 1.55; letter-spacing: .3px; }
+.hero h2 span { color: var(--accent); }
+.hero p { font-size: 12px; color: var(--muted); line-height: 1.9; margin-top: 14px; }
+/* 学习注释：插画是本地SVG，不发出地图或第三方网络请求。 */
+.power-scene { position: relative; min-width: 0; }
+.power-scene img { width: 100%; height: auto; display: block; }
+.power-scene figcaption { color: #72867c; text-align: right; font-size: 10px; margin: -2px 12px 0 0; }
+.suggestion-heading { display: flex; align-items: center; gap: 9px; margin: 25px 0 13px; font-size: 12px; font-weight: 600; }
+.suggestion-heading span { font-size: 10px; font-weight: 400; color: var(--muted); margin-left: auto; }
+.suggestions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+/* 学习注释：真实button支持鼠标、触屏、Tab与回车；点击只填入问题。 */
+.suggestion { text-align: left; position: relative; border: 1px solid #dce7e0; border-radius: 12px; background: #fbfdfb; padding: 17px 16px 15px; color: var(--text); transition: border-color .15s, background .15s; }
+.suggestion:hover { background: #f0f7f2; border-color: #76a592; }
+.suggestion:disabled { opacity: .55; cursor: not-allowed; }
+.suggestion-top { display: flex; align-items: center; gap: 9px; }
+.suggestion-icon { background: #eaf2eb; color: var(--accent); border-radius: 7px; width: 29px; height: 29px; display: grid; place-items: center; }
+.suggestion:nth-child(2) .suggestion-icon { color: #946a25; background: #fbf1dc; }
+.suggestion:nth-child(3) .suggestion-icon { color: #567e86; background: #edf3f4; }
+.suggestion-icon .icon { width: 17px; height: 17px; }
+.suggestion strong { font-size: 12px; font-weight: 600; }
+.suggestion p { font-size: 12px; color: #5d746d; line-height: 1.8; margin-top: 12px; padding-right: 14px; }
+.suggestion .arrow { position: absolute; right: 13px; bottom: 18px; width: 14px; height: 14px; color: var(--accent); }
+/* 学习注释：提示只解释现有查询能力，不显示虚构业务指标。 */
+.query-guide { margin-top: 20px; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 11px; color: var(--muted); padding: 13px 0 3px; border-top: 1px dashed #dae5dc; }
+.query-guide .icon { width: 15px; height: 15px; color: #8b733e; }
+.query-guide strong { font-weight: 500; color: #48665b; }
+.query-guide .guide-example { margin-left: auto; font-size: 10px; color: #7b8983; }
+/* 学习注释：发问后使用消息气泡展示内容，保留原来的JS选择器。 */
+.msg { display: flex; flex-direction: column; align-items: flex-start; margin: 0 auto 24px; max-width: 1000px; min-width: 0; }
+.msg.user { align-items: flex-end; }
+.message-label { display: flex; align-items: center; gap: 7px; margin-bottom: 7px; color: var(--muted); font-size: 11px; }
+.msg.assistant .message-label { font-weight: 600; color: var(--accent); }
+.msg.assistant .message-label::before { content: 'ϟ'; display: grid; place-items: center; background: var(--accent-soft); width: 21px; height: 21px; border-radius: 6px; font-size: 17px; }
+.bubble { max-width: 88%; padding: 13px 17px; border-radius: 13px; font-size: 14px; line-height: 1.85; white-space: pre-wrap; overflow-wrap: anywhere; }
+.msg.user .bubble { background: var(--accent); color: #fff; border-top-right-radius: 3px; }
+.msg.assistant .bubble { background: #f5f8f5; border: 1px solid #e2eae3; border-top-left-radius: 3px; }
+.meta { display: flex; flex-wrap: wrap; gap: 7px; font-size: 11px; color: var(--muted); margin-top: 9px; max-width: 100%; overflow-wrap: anywhere; }
+.toolchip { background: #ecf4f0; color: var(--accent); border-radius: 5px; padding: 3px 8px; }
+.faith { border-radius: 5px; padding: 3px 8px; }
+.faith.ok { background: #eaf6ef; color: #276347; }
+.faith.bad { background: #fff1e7; color: #9a481c; }
+.resolved { width: 100%; color: var(--muted); line-height: 1.7; }
+/* 学习注释：来源面板保持原生details交互，长ID与JSON可换行。 */
+details { max-width: 100%; margin-top: 10px; overflow-wrap: anywhere; }
+summary { cursor: pointer; font-size: 12px; color: var(--accent); padding: 4px 0; }
+details pre { border: 1px solid var(--line); border-left: 3px solid #82b5a0; border-radius: 5px; background: #fbfcfa; padding: 12px 15px; margin-top: 8px; line-height: 1.8; color: #4f6862; font-family: inherit; }
+.composer { flex-shrink: 0; padding: 16px 25px 13px; border-top: 1px solid #e7ede7; background: #fff; }
+/* 学习注释：整个输入区获得焦点时高亮，按钮与多行文本框共处同一边框。 */
+#inputbar { display: flex; align-items: flex-end; gap: 12px; border: 1px solid #b9cfc3; border-radius: 12px; padding: 12px; background: #fcfdfb; transition: border-color .15s, box-shadow .15s; }
+#inputbar:focus-within { border-color: #468e76; box-shadow: 0 0 0 3px #d9ebe350; }
+#input { flex: 1; min-width: 0; height: 44px; max-height: 120px; border: 0; background: transparent; padding: 8px 4px; font-size: 14px; line-height: 1.7; resize: none; outline: none; color: var(--text); }
+#input::placeholder { color: #82958c; }
+#send { display: flex; align-items: center; justify-content: center; gap: 8px; height: 42px; padding: 0 17px; border: 0; border-radius: 8px; background: var(--accent); color: #fff; font-size: 13px; font-weight: 500; flex-shrink: 0; }
+#send:hover { background: #0e6157; }
+#send:disabled { opacity: .5; cursor: not-allowed; }
+#send .icon { width: 16px; height: 16px; }
+.composer-hint { display: flex; justify-content: space-between; gap: 10px; color: #74867d; font-size: 10px; line-height: 1.7; margin: 10px 2px 0; }
+.workspace-footer { display: flex; align-items: center; justify-content: center; gap: 7px; color: #7a8b83; font-size: 10px; margin-top: 14px; flex-shrink: 0; }
+.workspace-footer .icon { width: 12px; height: 12px; }
+/* 学习注释：中等屏幕减少边距；正文列始终可以收缩。 */
+@media (max-width: 1150px) {
+  .sidebar { width: 205px; padding: 28px 16px 18px; }
+  .workspace { padding: 22px; }
+  .topbar { padding: 0 24px; }
+  #chat { padding: 22px; }
+  .hero { min-height: 210px; }
+  .hero h2 { font-size: 27px; }
+  .suggestion { padding: 13px 11px; }
+  .query-guide .guide-example { display: none; }
+}
+/* 学习注释：平板收起侧栏，把空间让给问数内容。 */
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .mobile-brand { display: flex; align-items: center; gap: 7px; font-weight: 650; font-size: 18px; color: var(--accent); }
+  .breadcrumb { display: none; }
+  .topbar { height: 62px; }
+}
+/* 学习注释：常见笔记本的高度较小，缩短头图区，首屏也能看到示例问题。 */
+@media (min-width: 901px) and (max-height: 820px) {
+  .topbar { height: 58px; }
+  .workspace { padding: 18px 26px 14px; }
+  .page-heading { margin-bottom: 15px; }
+  .page-heading h1 { font-size: 20px; }
+  .page-heading p { margin-top: 5px; }
+  .bench-header { padding: 12px 22px; }
+  #chat { padding: 18px 24px; }
+  .hero { min-height: 158px; }
+  .hero h2 { font-size: 27px; line-height: 1.4; }
+  .eyebrow { margin-bottom: 10px; }
+  .hero p { margin-top: 10px; }
+  .power-scene { width: 100%; max-width: 320px; margin: 0 auto; }
+  .suggestion-heading { margin: 17px 0 10px; }
+  .suggestion { padding: 12px 13px; }
+  .suggestion p { margin-top: 8px; }
+  .query-guide { margin-top: 14px; padding-top: 10px; }
+  .composer { padding: 12px 20px 10px; }
+  .workspace-footer { margin-top: 10px; }
+}
+/* 学习注释：手机上下堆叠，输入区固定在工作台底部，欢迎内容可滚动。 */
+@media (max-width: 600px) {
+  .topbar { height: 54px; padding: 0 18px; }
+  .workspace { padding: 16px 10px 10px; }
+  .page-heading { margin: 0 6px 13px; }
+  .page-heading h1 { font-size: 18px; }
+  .page-heading p { font-size: 11px; margin-top: 5px; }
+  .heading-emblem { display: none; }
+  .workbench { border-radius: 13px; }
+  .bench-header { padding: 12px 15px; }
+  .bench-note { font-size: 10px; }
+  #chat { padding: 20px 17px; }
+  .hero { grid-template-columns: minmax(0, 1fr) 108px; min-height: 0; gap: 0; }
+  .hero h2 { font-size: 23px; }
+  .eyebrow { margin-bottom: 10px; }
+  .hero p { font-size: 11px; margin-top: 10px; }
+  .power-scene { margin: 0; width: 100%; }
+  .power-scene figcaption { font-size: 9px; margin: 6px 0 0; line-height: 1.7; text-align: center; }
+  .suggestion-heading { margin-top: 20px; }
+  .suggestions { grid-template-columns: 1fr; gap: 8px; }
+  .suggestion { padding: 11px 13px; }
+  .suggestion p { margin-top: 5px; font-size: 11px; }
+  .suggestion-top { gap: 8px; }
+  .suggestion-icon { width: 24px; height: 24px; }
+  .query-guide { margin-top: 15px; gap: 6px; line-height: 1.8; }
+  .bubble { max-width: 96%; font-size: 13px; padding: 11px 13px; }
+  .composer { padding: 12px 10px 10px; }
+  #inputbar { gap: 7px; padding: 8px; }
+  #input { font-size: 16px; padding: 7px 2px; } /* iOS聚焦16px字体时不会自动放大页面。 */
+  #send { padding: 0 13px; height: 42px; }
+  #send .icon { display: none; }
+  .composer-hint { font-size: 9px; margin-top: 7px; }
+  .composer-hint .keyboard-hint { display: none; }
+  .workspace-footer { margin-top: 9px; font-size: 9px; }
+}
+/* 学习注释：最窄手机上让插画单独占一行，避免标题挤成一字一行。 */
+@media (max-width: 360px) {
+  .hero { grid-template-columns: 1fr; }
+  .power-scene { max-width: 165px; margin: 8px auto 0; }
+}
+/* 学习注释：尊重系统减少动画设置，关闭不必要的过渡效果。 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; }
+}

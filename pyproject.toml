@@ -1,46 +1,55 @@
+# 学习注释：项目基本信息和运行所需依赖；uv按此文件与uv.lock安装环境。
 [project]
+# 学习注释：包名用于环境和构建标识，不是网页标题。
 name = "gridmate"
-version = "0.1.0"
-requires-python = ">=3.12"
+# 学习注释：本项目包版本号，与data/masked中的业务数据版本不是同一概念。
+version = "0.2.0"
+# 学习注释：声明最低Python版本；后续类型提示等语法依赖该版本能力。
+requires-python = ">=3.10"
+# 学习注释：应用正常运行需要安装的第三方库，下面每行是一个依赖约束。
 dependencies = [
-    "aiosqlite>=0.20",
-    "asyncmy>=0.2.9",
+    # 学习注释：HTTP应用框架，负责请求参数解析、接口路由和响应。
     "fastapi>=0.139.0",
+    # 学习注释：HTTP客户端，重排API和验收脚本使用它发送网络请求。
     "httpx>=0.28.1",
-    "jsonschema>=4.26.0",
+    # 学习注释：模型、工具与Agent流程的封装；业务SQL与范围校验仍由本项目代码负责。
     "langchain>=1.3.13",
-    "langchain-mcp-adapters>=0.3.0",
+    # 学习注释：将OpenAI兼容聊天接口适配成LangChain模型。
     "langchain-openai>=1.3.5",
-    "langchain-text-splitters>=1.1.2",
-    "langfuse>=4.14.0",
-    "langgraph>=0.2",
-    "langgraph-checkpoint-sqlite>=2.0",
-    "mcp>=1.28.1",
+    # 学习注释：OpenAI协议客户端；本项目用它调用配置的Embedding服务，不限定服务商为OpenAI。
     "openai>=2.45.0",
+    # 学习注释：数据模型与字段校验，用于请求、模型结构化输出和证据对象。
+    "pydantic>=2.0.0",
+    # 学习注释：从环境变量及本地.env加载应用配置。
     "pydantic-settings>=2.14.2",
-    "pymilvus[milvus-lite]>=3.0.0",
-    "sqlalchemy[asyncio]>=2.0.0",
+    # 学习注释：Milvus客户端，负责向量集合、检索和索引操作。
+    "pymilvus>=3.0.0",
+    # 学习注释：读取原始项目Excel表格，供数据加工脚本使用。
+    "openpyxl>=3.1.0",
+    # 学习注释：运行FastAPI的ASGI服务；standard安装常用运行依赖。
     "uvicorn[standard]>=0.51.0",
 ]
 
+# 学习注释：开发依赖分组；运行应用与开发测试所需工具分开声明。
 [dependency-groups]
+# 学习注释：开发时安装的测试和HTTP工具集合。
 dev = [
+    # 学习注释：HTTP客户端，重排API和验收脚本使用它发送网络请求。
     "httpx>=0.28.1",
-    "httpx2>=2.5.0",
+    # 学习注释：自动发现并运行tests目录里的测试。
     "pytest>=9.1.1",
+    # 学习注释：让pytest支持async def异步测试函数。
     "pytest-asyncio>=1.4.0",
 ]
-# classifier 训练/导出重依赖:主应用运行时不需要,uv run --group ml 按需装
-ml = [
-    "torch>=2.6",
-    "transformers>=4.46",
-    "accelerate>=1.0",
-    "scikit-learn>=1.5",
-    "onnx>=1.17",
-    "onnxruntime>=1.20",
-    "tokenizers>=0.20",
-]
 
+# 学习注释：可选依赖，只有需要对应功能时才额外安装。
+[project.optional-dependencies]
+# 学习注释：浏览器验收使用Playwright；还需要可用的浏览器程序，例如本机Edge。
+browser = ["playwright>=1.50,<2"]
+
+# 学习注释：pytest运行选项，不是应用线上配置。
 [tool.pytest.ini_options]
+# 学习注释：自动识别异步测试，减少每个测试重复添加标记。
 asyncio_mode = "auto"
+# 学习注释：默认从tests目录收集测试，不把scripts中的真实验收脚本自动运行。
 testpaths = ["tests"]

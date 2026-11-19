@@ -20,3 +20,26 @@ data/classifier/*
 # 运行日志:后台页发起的作业与 dev.sh 启动日志,本地产物不入库
 data/*.log
 data/retrieval/*.log
+
+# ==== 停电台账：本地数据一律不入库（含脱敏后的假名数据，脱敏≠不可逆）====
+# 脱敏后的台账数据（SQLite + 假名 CSV + 检索语料），仅在本地验证，绝不提交
+data/masked/
+data/masked_backup*/
+# 每次运行的评测报告可能带查询/事件引用，留在本地。
+data/evaluations/
+# 含真实原文的相似检索标注文件（text 字段是脱敏前的原始事件文本）
+tests/data/similar_label_ai_review_*.json
+# 「template」命名不代表只有空结构：这两份各含 50 个非空 text（真实事件正文），
+# 同样按「内容」而非「文件名」排除，防止随代码误提交（二次审阅问题 10）。
+tests/data/similar_label_template.json
+tests/data/similar_label_template_v2.json
+# 本地审阅、台账原文及历史运行结果；公开材料使用单独维护的摘要。
+.workbuddy/
+.pytest_tmp/
+docs/相似检索*.md
+docs/*复现结果*.json
+tests/data/*result.json
+data/demo_source/
+docs/local/
+# 由本地台账生成的统计基准、原文标签与历史结果均留本地。
+tests/data/*.json

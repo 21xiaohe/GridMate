@@ -1,160 +1,144 @@
-import asyncio
+# -*- coding: utf-8 -*-
+# 阅读导航：HTTP入口
+# 本文件作用：网页把问题发到 /api/chat；此处校验请求结构并交给 agent.chat，最终把字典转成JSON响应。
+# 建议读法：先读 AskRequest / ChatRequest，再读 api_ask / api_chat；算法在 app/core 中。
+# 语法提示：def定义函数；冒号后的缩进属于该代码块；return返回；await等待异步结果。
+
+"""GridMate（停电台账问数助手）应用入口。
+
+对外提供「停电台账问数」能力的轻量 HTTP 接口 + 网页聊天框（面试演示用）。
+
+两个接口：
+  POST /api/ask   —— 单轮问数（不保留多轮历史）
+  POST /api/chat  —— 多轮会话（带指代消解，session_id 标识会话）
+
+返回值统一包含：
+  answer        最终回答文本
+  tool_calls    本次实际调用的工具名列表（验证「Agent 自主编排」）
+  resolved_query 多轮时才有的「指代消解补全后的问题」
+  verification_status 忠实度三态 "faithful"/"unfaithful"/"unverified"/null（null=未自检）
+  faith_reason  忠实度判定依据
+  degraded      是否降级为直接呈现原始数据
+"""
+# 学习注释：导入logging：分级日志，便于排查运行失败。
 import logging
+# 学习注释：从contextlib引入asynccontextmanager，用于上下文管理器，管理进入/退出步骤。
 from contextlib import asynccontextmanager
+# 学习注释：从pathlib引入Path，用于跨平台文件路径对象。
 from pathlib import Path
 
-from fastapi import FastAPI
+# 学习注释：从fastapi引入FastAPI, HTTPException，用于定义HTTP应用、接口与请求错误。
+from fastapi import FastAPI, HTTPException
+# 学习注释：从fastapi.responses引入FileResponse，用于返回网页或文件响应。
 from fastapi.responses import FileResponse
+# 学习注释：从fastapi.staticfiles引入StaticFiles，用于提供CSS、JS和HTML等静态资源。
 from fastapi.staticfiles import StaticFiles
+# 学习注释：从pydantic引入BaseModel, Field，用于字段类型、默认值与数据结构校验。
+from pydantic import BaseModel, Field
 
-from app.api.acceptance import router as acceptance_router
-from app.api.actions import router as actions_router
-from app.api.admin import router as admin_router
-from app.api.agent import router as agent_router
-from app.api.chat import router as chat_router
-from app.api.conversations import router as conversations_router
-from app.api.extract import router as extract_router
-from app.api.feedback import router as feedback_router
-from app.api.jobs import router as jobs_router
-from app.api.kb import router as kb_router
-from app.api.observability import router as observability_router
-from app.api.rageval import router as rageval_router
-from app.api.review import router as review_router
-from app.api.topics import router as topics_router
-from app.graph import runtime
+# 学习注释：从app.core导入agent，复用对应模块的实现。
+from app.core import agent
 
-# 让 app.* 的 INFO 日志可见(uvicorn 默认不给 app 记录器配 INFO handler,
-# 否则 agent log 节点的 turn trace——验收1 靠它观测「强制检索节点被走到」——不会输出)
-_applog = logging.getLogger("app")
-if not _applog.handlers:
-    _fmt = logging.Formatter("%(levelname)s:%(name)s:%(message)s")
-    _h = logging.StreamHandler()
-    _h.setFormatter(_fmt)
-    _applog.addHandler(_h)
-    # 同时落项目内 log/app.log:稳定的 tail 目标(app.* 决策日志,不含 uvicorn HTTP 噪声,
-    # 因 propagate=False + uvicorn 日志不经 app 记录器)。目录随启动自建,已 gitignore。
-    _log_dir = Path(__file__).resolve().parent.parent / "log"
-    _log_dir.mkdir(parents=True, exist_ok=True)
-    _fh = logging.FileHandler(_log_dir / "app.log", encoding="utf-8")
-    _fh.setFormatter(_fmt)
-    _applog.addHandler(_fh)
-_applog.setLevel(logging.INFO)
-_applog.propagate = False
-
+# 学习注释：创建以当前模块名标识的日志记录器；保存到logger。
 logger = logging.getLogger(__name__)
+# 学习注释：按目录层级拼接文件路径 Path(__file__).parent / 'static'；保存到_STATIC_DIR。
 _STATIC_DIR = Path(__file__).parent / "static"
 
 
+# 学习注释：异步函数lifespan接收app；把这一段可复用处理封装起来。
 @asynccontextmanager
+# 学习注释：FastAPI的启动/关闭上下文；当前yield前后没有额外动作，外部服务不在这里启动。
 async def lifespan(app: FastAPI):
-    """启动预热 Milvus:加载集合并轮询直到可检索,避免首个用户请求撞上 Standalone 的加载竞态
-    (集合 load 在后台异步完成,未就绪时检索会静默返回空)。预热失败不阻塞启动。"""
-    try:
-        from app.core import retrieval
-        for _ in range(15):
-            hits = await retrieval.search_knowledge("退费违约金", strategy="bm25", top_k=1)
-            if hits:
-                logger.info("Milvus 预热完成,集合可检索")
-                break
-            await asyncio.sleep(1)
-        else:
-            logger.warning("Milvus 预热超时(15s)未返回结果,继续启动")
-    except Exception:
-        logger.warning("Milvus 预热异常,继续启动", exc_info=True)
-    from app.tools import registry as tool_registry
-    tool_registry.scan_builtin()   # interrupt:内置工具服务启动时登记(扫描 builtin/ 包,import 即注册)
-    await runtime.init_graph()
+    # 学习注释：把控制权交给with块或迭代调用者；恢复后继续执行清理步骤。
     yield
-    await runtime.close_graph()
 
 
-app = FastAPI(title="GridMate", version="0.1.0", lifespan=lifespan)
-app.include_router(actions_router)
-app.include_router(chat_router)
-app.include_router(extract_router)
-app.include_router(agent_router)
-app.include_router(conversations_router)
-app.include_router(feedback_router)
-app.include_router(review_router)
-app.include_router(topics_router)
-app.include_router(acceptance_router)
-app.include_router(kb_router)
-app.include_router(rageval_router)
-app.include_router(observability_router)
-app.include_router(admin_router)
-app.include_router(jobs_router)
-
-# 后台各页共用外壳(样式 + 取数/重跑脚本 + 导航),抽成文件放静态目录
-app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
+# 学习注释：创建HTTP应用对象；Uvicorn启动时加载的app.main:app就是这个变量。
+app = FastAPI(title="GridMate", version="0.2.0", lifespan=lifespan)
 
 
+# ---------------------------------------------------------------------------
+# 请求 / 响应模型
+# ---------------------------------------------------------------------------
+# 学习注释：AskRequest定义数据字段与默认值；继承的Pydantic会在创建/解析时检查类型和约束。
+class AskRequest(BaseModel):
+    # 学习注释：请求正文中的query是用户输入；Pydantic检查字符串类型，此处没有单独限制长度。
+    query: str = Field(description="用户的自然语言问数问题")
+    # 学习注释：单轮接口默认开启回答自检；显式传false时会跳过这项模型检查。
+    self_check: bool = Field(default=True, description="是否生成后跑忠实度自检")
+
+
+# 学习注释：ChatRequest定义数据字段与默认值；继承的Pydantic会在创建/解析时检查类型和约束。
+class ChatRequest(BaseModel):
+    # 学习注释：用同一会话ID关联多轮问题；它只是会话键，目前没有登录认证或用户归属校验。
+    session_id: str = Field(description="会话标识，同一会话多轮用同一个 id")
+    # 学习注释：请求正文中的query是用户输入；Pydantic检查字符串类型，此处没有单独限制长度。
+    query: str = Field(description="用户的自然语言问数问题")
+
+
+# ---------------------------------------------------------------------------
+# 接口
+# ---------------------------------------------------------------------------
+# 学习注释：注册单轮POST接口；请求JSON按AskRequest解析后传给下面的函数。
+@app.post("/api/ask")
+async def api_ask(req: AskRequest) -> dict:
+    """单轮问数：输入一句自然语言，返回 Agent 自主编排后的回答。"""
+    # 学习注释：执行可能失败的步骤；except处理异常，异常处理后由上层决定返回、重试或继续。
+    try:
+        # 学习注释：等待单轮Agent完成，拿到回答、实际工具调用和结构化证据。
+        result = await agent.run(req.query, self_check=req.self_check)
+    except Exception:
+        # 学习注释：在服务端保留异常栈便于排查；本地日志可能含请求信息，不应直接公开。
+        logger.exception("问数失败 query=%r", req.query)
+        # 学习注释：向浏览器返回固定错误说明与500状态，避免把上游异常正文直接展示。
+        raise HTTPException(status_code=500, detail="问数执行失败，请稍后重试。") from None
+    # 学习注释：返回result，结束本次函数调用。
+    return result
+
+
+# 学习注释：注册多轮POST接口；chat会读取历史并补全追问。
+@app.post("/api/chat")
+async def api_chat(req: ChatRequest) -> dict:
+    """多轮会话：同一 session_id 下的追问会自动做指代消解（「这条线」「它」）。"""
+    # 学习注释：执行可能失败的步骤；except处理异常，异常处理后由上层决定返回、重试或继续。
+    try:
+        # 学习注释：把会话ID与原问题交给多轮处理；本接口本身不计算统计数字。
+        result = await agent.chat(req.session_id, req.query)
+    except Exception:
+        # 学习注释：在服务端保留异常栈便于排查；本地日志可能含请求信息，不应直接公开。
+        logger.exception("会话失败 session_id=%r", req.session_id)
+        # 学习注释：向浏览器返回固定错误说明与500状态，避免把上游异常正文直接展示。
+        raise HTTPException(status_code=500, detail="会话执行失败，请稍后重试。") from None
+    # 学习注释：返回result，结束本次函数调用。
+    return result
+
+
+# 学习注释：注册清空会话接口；清空与请求写回使用同一把锁。
+@app.delete("/api/chat/{session_id}")
+async def api_clear_session(session_id: str) -> dict:
+    """清空某会话的多轮历史（重置对话，会话内存有上限，也可手动释放）。"""
+    # 学习注释：agent.clear_session的执行结果，await等待结果后再继续。
+    await agent.clear_session(session_id)
+    # 学习注释：返回包含status、cleared的字典，结束本次函数调用。
+    return {"status": "ok", "cleared": session_id}
+
+
+# 学习注释：注册进程存活接口；它不会探测模型额度、网络和Milvus是否可用。
+@app.get("/healthz")
+async def healthz() -> dict:
+    # 学习注释：仅报告本HTTP应用正在响应，不能据此推断整条问答链路健康。
+    return {"status": "ok", "service": "gridmate-outage-qa"}
+
+
+# ---------------------------------------------------------------------------
+# 网页聊天框
+# ---------------------------------------------------------------------------
+# 学习注释：异步函数chat_page接收调用时的上下文；把这一段可复用处理封装起来。
 @app.get("/", include_in_schema=False)
 async def chat_page() -> FileResponse:
+    # 学习注释：把聊天页HTML返回给浏览器；网页中的JavaScript再调用/api/chat。
     return FileResponse(_STATIC_DIR / "index.html")
 
 
-@app.get("/admin", include_in_schema=False)
-async def admin_page() -> FileResponse:
-    """后台管理首页:知识库、RAG 评估、飞轮待审、观测与成本、主题分布、分类器验收各一张卡,一处进出。
-    各模块页面还是各自原本的路径,首页只把入口收到一起,文档里贴过的链接照样能用。"""
-    return FileResponse(_STATIC_DIR / "admin.html")
-
-
-@app.get("/kb", include_in_schema=False)
-async def kb_page() -> FileResponse:
-    """rag 知识库录入页:贴文档就能切块入库、向量化、当场检索自测。"""
-    return FileResponse(_STATIC_DIR / "kb.html")
-
-
-@app.get("/rag-eval", include_in_schema=False)
-async def rageval_page() -> FileResponse:
-    """retrieval RAG 评估页:四策略对照的那份报告,页面上看,也在页面上重跑。"""
-    return FileResponse(_STATIC_DIR / "rageval.html")
-
-
-@app.get("/review", include_in_schema=False)
-async def review_page() -> FileResponse:
-    """flywheel 飞轮待审队列后台管理页。"""
-    return FileResponse(_STATIC_DIR / "review.html")
-
-
-@app.get("/observability", include_in_schema=False)
-async def observability_page() -> FileResponse:
-    """flywheel 观测与成本页:意图成本账、评估趋势、置信度阈值校准三张报表,页上看也页上重跑。"""
-    return FileResponse(_STATIC_DIR / "observability.html")
-
-
-@app.get("/topics", include_in_schema=False)
-async def topics_page() -> FileResponse:
-    """classifier 主题分布页:分类器旁路归类结果,按 17 类看问题量。"""
-    return FileResponse(_STATIC_DIR / "topics.html")
-
-
-@app.get("/topics/questions", include_in_schema=False)
-async def topic_questions_page() -> FileResponse:
-    """classifier 类目问题列表:从分布图点进某一类,分页看这类下归类到的全部问题。"""
-    return FileResponse(_STATIC_DIR / "topic-questions.html")
-
-
-@app.get("/acceptance", include_in_schema=False)
-async def acceptance_page() -> FileResponse:
-    """classifier 验收总览:九项实证各一张闸门卡,产物缺失就地重跑。"""
-    return FileResponse(_STATIC_DIR / "acceptance.html")
-
-
-@app.get("/acceptance/eval", include_in_schema=False)
-async def acceptance_eval_page() -> FileResponse:
-    """classifier 评测详情:每类 P/R/F1 与容错红线、micro vs macro、阈值扫描、混淆矩阵、单句试分类。"""
-    return FileResponse(_STATIC_DIR / "acceptance-eval.html")
-
-
-@app.get("/acceptance/data", include_in_schema=False)
-async def acceptance_data_page() -> FileResponse:
-    """classifier 数据产物:语料血缘、三份考卷与泄漏自检、训练与 ONNX 产物盘点。"""
-    return FileResponse(_STATIC_DIR / "acceptance-data.html")
-
-
-@app.get("/acceptance/errors", include_in_schema=False)
-async def acceptance_errors_page() -> FileResponse:
-    """classifier 错例复核:逐条标准/预测对照、错误方向记账、边界摩擦配对。"""
-    return FileResponse(_STATIC_DIR / "acceptance-errors.html")
+# 学习注释：将/static路径映射到静态文件目录，供浏览器加载页面资源。
+app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static")
